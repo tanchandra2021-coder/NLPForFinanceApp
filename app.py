@@ -1,16 +1,15 @@
-
 # app.py
 import streamlit as st
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import numpy as np
 
-# -------------------- STEP 1: Load Model --------------------
+# -------------------- STEP 1: Load Pretrained FinBERT Model --------------------
 @st.cache_resource
 def load_model_and_tokenizer():
-    model_path = "NLP_For_Finance_BERT_Model"  # Update with your model path
-    model = BertForSequenceClassification.from_pretrained(model_path)
-    tokenizer = BertTokenizer.from_pretrained(model_path)
+    model_name = "yiyanghkust/finbert-tone"  # Hugging Face pretrained FinBERT for finance
+    model = BertForSequenceClassification.from_pretrained(model_name)
+    tokenizer = BertTokenizer.from_pretrained(model_name)
     model.eval()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
@@ -39,13 +38,13 @@ def predict_sentiment(text):
     return probs
 
 def predict_stock_movement(sentiment_probs):
-    # Simple proxy mapping sentiment -> stock change
-    labels = ["Negative", "Neutral", "Positive"]
+    # Map sentiment to rough stock change (%)
+    labels = ["positive", "neutral", "negative"]
     predicted_label = labels[np.argmax(sentiment_probs)]
     
-    if predicted_label == "Positive":
+    if predicted_label == "positive":
         stock_change = np.random.uniform(0.5, 3.0)
-    elif predicted_label == "Neutral":
+    elif predicted_label == "neutral":
         stock_change = np.random.uniform(-0.5, 0.5)
     else:
         stock_change = np.random.uniform(-3.0, -0.5)
@@ -61,7 +60,7 @@ button = st.button("Predict")
 if button:
     if text:
         probs = predict_sentiment(text)
-        labels = ["Negative", "Neutral", "Positive"]
+        labels = ["Positive", "Neutral", "Negative"]
         
         st.subheader("Sentiment Probabilities:")
         for label, prob in zip(labels, probs):
@@ -69,7 +68,7 @@ if button:
         
         sentiment_label, stock_change = predict_stock_movement(probs)
         st.subheader("Predicted Sentiment & Stock Movement:")
-        st.write(f"Sentiment: **{sentiment_label}**")
+        st.write(f"Sentiment: **{sentiment_label.capitalize()}**")
         st.write(f"Predicted Stock Movement: **{stock_change:.2f}%**")
         
     else:
