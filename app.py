@@ -3,13 +3,14 @@ import streamlit as st
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import numpy as np
+import re
 
-# -------------------- STEP 1: Load Pretrained FinBERT Model --------------------
+# -------------------- STEP 1: Load Model --------------------
 @st.cache_resource
 def load_model_and_tokenizer():
-    model_name = "yiyanghkust/finbert-tone"  # Hugging Face pretrained FinBERT for finance
-    model = BertForSequenceClassification.from_pretrained(model_name)
-    tokenizer = BertTokenizer.from_pretrained(model_name)
+    model_path = "NLP_For_Finance_BERT_Model"  # Update with your model path
+    model = BertForSequenceClassification.from_pretrained(model_path)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
     model.eval()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
@@ -37,18 +38,33 @@ def predict_sentiment(text):
     probs = torch.nn.functional.softmax(logits, dim=1).cpu().numpy().flatten()
     return probs
 
-def predict_stock_movement(sentiment_probs):
-    # Map sentiment to rough stock change (%)
-    labels = ["positive", "neutral", "negative"]
+def predict_stock_movement(text, sentiment_probs):
+    """
+    Combines sentiment and numeric heuristics to estimate stock movement.
+    """
+    # Sentiment-based baseline
+    labels = ["Negative", "Neutral", "Positive"]
     predicted_label = labels[np.argmax(sentiment_probs)]
     
-    if predicted_label == "positive":
-        stock_change = np.random.uniform(0.5, 3.0)
-    elif predicted_label == "neutral":
+    # Numeric heuristic: look for percentages in the text
+    numbers = [float(n.replace(',', '')) for n in re.findall(r'[-+]?\d*\.\d+%?|\d+%?', text)]
+    numeric_change = 0.0
+    for num in numbers:
+        if isinstance(num, float):
+            numeric_change += num
+
+    # Map sentiment -> baseline change
+    if predicted_label == "Positive":
+        stock_change = np.random.uniform(0.5, 2.0)
+    elif predicted_label == "Neutral":
         stock_change = np.random.uniform(-0.5, 0.5)
     else:
-        stock_change = np.random.uniform(-3.0, -0.5)
+        stock_change = np.random.uniform(-2.0, -0.5)
     
+    # Adjust with numeric clues (if % present, scale it)
+    if numeric_change != 0.0:
+        stock_change = numeric_change if abs(numeric_change) < 50 else np.sign(numeric_change)*50
+
     return predicted_label, stock_change
 
 # -------------------- STEP 3: Streamlit App --------------------
@@ -60,16 +76,17 @@ button = st.button("Predict")
 if button:
     if text:
         probs = predict_sentiment(text)
-        labels = ["Positive", "Neutral", "Negative"]
+        labels = ["Negative", "Neutral", "Positive"]
         
         st.subheader("Sentiment Probabilities:")
         for label, prob in zip(labels, probs):
             st.write(f"{label}: {prob:.4f}")
         
-        sentiment_label, stock_change = predict_stock_movement(probs)
+        sentiment_label, stock_change = predict_stock_movement(text, probs)
         st.subheader("Predicted Sentiment & Stock Movement:")
-        st.write(f"Sentiment: **{sentiment_label.capitalize()}**")
+        st.write(f"Sentiment: **{sentiment_label}**")
         st.write(f"Predicted Stock Movement: **{stock_change:.2f}%**")
         
     else:
         st.error("Please enter some text to analyze.")
+
