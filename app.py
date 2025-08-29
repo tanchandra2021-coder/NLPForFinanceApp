@@ -1,46 +1,66 @@
-# app.py
 import streamlit as st
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import numpy as np
 import re
 
-# Load sentiment analysis model
-sentiment_pipeline = pipeline("sentiment-analysis")
+# Load model + tokenizer
+MODEL_NAME = "ProsusAI/finbert"
+tokenizer = BertTokenizer.from_pretrained(MODEL_NAME)
+model = BertForSequenceClassification.from_pretrained(MODEL_NAME)
 
-st.title("📈 Finance News Sentiment & Stock Movement Predictor")
+# Function to clean text
+def clean_text(text):
+    return re.sub(r'[^a-zA-Z0-9%$., ]', '', text)
 
-# User input
+# Function to get sentiment
+def predict_sentiment(text):
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=128)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+    return probs
+
+# Function to extract % change from text
+def extract_percentage(text):
+    matches = re.findall(r'(\d+\.?\d*)\s*%', text)
+    if matches:
+        return float(matches[0])
+    return 0.0
+
+# Function to predict stock movement with cap
+def predict_stock_movement(text, sentiment_label):
+    raw_pct = extract_percentage(text)
+
+    # Cap stock movement at +/- 10%
+    cap = 10.0
+    movement = min(raw_pct, cap)
+
+    if sentiment_label == "Positive":
+        return round(movement, 2)
+    elif sentiment_label == "Negative":
+        return round(-movement, 2)
+    else:
+        return 0.0
+
+# Streamlit App
+st.title("Finance News Sentiment & Stock Movement Predictor")
 user_input = st.text_area("Enter stock news, tweets, or finance text:")
 
 if user_input:
-    # Run sentiment analysis
-    results = sentiment_pipeline(user_input, return_all_scores=True)[0]
-    
-    # Convert results into dictionary {label: score}
-    sentiment_scores = {res['label']: res['score'] for res in results}
-    
-    # Determine sentiment
-    sentiment = max(sentiment_scores, key=sentiment_scores.get)
-    
-    # Predict stock movement (capped at ±10%)
-    if sentiment == "POSITIVE":
-        predicted_movement = min(10.0, sentiment_scores['POSITIVE'] * 10)  # up to +10%
-    elif sentiment == "NEGATIVE":
-        predicted_movement = max(-10.0, -sentiment_scores['NEGATIVE'] * 10)  # down to -10%
-    else:
-        predicted_movement = 0.0  # Neutral sentiment = ~0% movement
+    cleaned = clean_text(user_input)
+    probs = predict_sentiment(cleaned)
 
-    # Display results
-    st.subheader("Sentiment Probabilities:")
-    st.write({
-        "Negative": round(sentiment_scores.get("NEGATIVE", 0.0), 4),
-        "Neutral": round(sentiment_scores.get("NEUTRAL", 0.0), 4),
-        "Positive": round(sentiment_scores.get("POSITIVE", 0.0), 4),
-    })
+    labels = ["Negative", "Neutral", "Positive"]
+    sentiment_idx = np.argmax(probs)
+    sentiment_label = labels[sentiment_idx]
 
-    st.subheader("Predicted Sentiment & Stock Movement:")
-    st.write(f"**Sentiment:** {sentiment.capitalize()}")
-    st.write(f"**Predicted Stock Movement:** {predicted_movement:.2f}%")
+    stock_movement = predict_stock_movement(cleaned, sentiment_label)
 
+    st.write("### Sentiment Probabilities:")
+    for label, prob in zip(labels, probs):
+        st.write(f"{label}: {prob:.4f}")
 
+    st.write("### Predicted Sentiment & Stock Movement:")
+    st.write(f"**Sentiment:** {sentiment_label}")
+    st.write(f"**Predicted Stock Movement:** {stock_movement}%")
