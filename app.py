@@ -17,7 +17,7 @@ st.markdown("""
 <style>
 /* Background image: stock market chart */
 .stApp {
-    background-image: url("https://unsplash.com/photos/black-android-smartphone-on-brown-wooden-table-VP4WmibxvcY");
+    background-image: url("https://cdn.pixabay.com/photo/2015/09/04/23/28/stock-923706_1280.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -90,11 +90,15 @@ textarea {
 /* Results bubble */
 .results-bubble {
     background: #f9f9f9;
-    color: #111;
+    color: #000 !important;   /* Force black text */
     border-radius: 30px;
     padding: 25px;
     margin-top: 30px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    position: relative;
+}
+.results-bubble * {
+    color: #000 !important;   /* Make ALL children black */
 }
 .results-bubble::after {
     content: "";
@@ -160,7 +164,7 @@ if st.button("Predict 🚀"):
     else:
         movement = 0.0
 
-    # Results bubble
+    # Results bubble (now forced black text)
     st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
     st.subheader("📊 Sentiment Probabilities")
     for label, p in zip(sentiment_labels, probs):
@@ -177,7 +181,3 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
