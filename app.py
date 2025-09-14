@@ -12,12 +12,12 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Custom CSS for modern UI ---
+# --- Custom CSS for modern UI with animated stock background ---
 st.markdown("""
 <style>
-/* Background image: stock market chart */
+/* Animated GIF background */
 .stApp {
-    background-image: url("https://cdn.pixabay.com/photo/2015/09/04/23/28/stock-923706_1280.jpg");
+    background-image: url("https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -25,19 +25,19 @@ st.markdown("""
     color: #fff;
 }
 
-/* Ombré black overlay */
+/* Semi-transparent black overlay for readability */
 .stApp::before {
     content: "";
     position: fixed;
     top: 0; left: 0;
     height: 100%; width: 100%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.95));
+    background: rgba(0,0,0,0.6);
     z-index: -1;
 }
 
 /* Thought bubble style */
 .thought-bubble {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     color: #222;
     border-radius: 30px;
     padding: 25px 30px;
@@ -55,7 +55,7 @@ st.markdown("""
     left: 60px;
     border-width: 25px 25px 0;
     border-style: solid;
-    border-color: white transparent transparent transparent;
+    border-color: rgba(255,255,255,0.95) transparent transparent transparent;
 }
 
 /* Title bubble */
@@ -89,8 +89,8 @@ textarea {
 
 /* Results bubble */
 .results-bubble {
-    background: #f9f9f9;
-    color: #000 !important;   /* Force black text */
+    background: rgba(249, 249, 249, 0.95);
+    color: #000 !important;  
     border-radius: 30px;
     padding: 25px;
     margin-top: 30px;
@@ -98,7 +98,7 @@ textarea {
     position: relative;
 }
 .results-bubble * {
-    color: #000 !important;   /* Make ALL children black */
+    color: #000 !important;
 }
 .results-bubble::after {
     content: "";
@@ -107,7 +107,7 @@ textarea {
     left: 80px;
     border-width: 25px 25px 0;
     border-style: solid;
-    border-color: #f9f9f9 transparent transparent transparent;
+    border-color: rgba(249,249,249,0.95) transparent transparent transparent;
 }
 
 /* Black Predict button */
@@ -164,7 +164,7 @@ if st.button("Predict 🚀"):
     else:
         movement = 0.0
 
-    # Results bubble (now forced black text)
+    # Results bubble
     st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
     st.subheader("📊 Sentiment Probabilities")
     for label, p in zip(sentiment_labels, probs):
@@ -181,3 +181,4 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
+
