@@ -109,4 +109,51 @@ div.stButton > button:hover {
     transform: translateY(-2px);
 }
 </style>
-""",
+""", unsafe_allow_html=True)  # <- triple quotes properly closed here
+
+# --- App layout ---
+st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
+
+# Input thought bubble
+st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
+text = st.text_area("💭 Paste your stock news, tweets, or finance text here:", "")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Prediction button
+if st.button("Predict 🚀"):
+    # Process sentiment
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    
+    # --- Correctly indented torch no_grad block ---
+    with torch.no_grad():
+        outputs = model(**inputs)
+        probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+
+    sentiment_labels = ["Positive", "Neutral", "Negative"]
+    sentiment_idx = np.argmax(probs)
+    sentiment = sentiment_labels[sentiment_idx]
+
+    movement = 0.0
+    if sentiment == "Positive":
+        movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
+    elif sentiment == "Negative":
+        movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
+
+    # Results bubble
+    st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
+    st.subheader("📊 Sentiment Probabilities")
+    for label, p in zip(sentiment_labels, probs):
+        st.write(f"**{label}:** {p:.4f}")
+
+    st.subheader("🧠 Predicted Sentiment & Stock Movement")
+    if sentiment == "Positive":
+        st.write(f"📈 **Sentiment:** {sentiment}")
+        st.write(f"📈 **Predicted Movement:** +{movement}%")
+    elif sentiment == "Negative":
+        st.write(f"📉 **Sentiment:** {sentiment}")
+        st.write(f"📉 **Predicted Movement:** {movement}%")
+    else:
+        st.write(f"➖ **Sentiment:** {sentiment}")
+        st.write(f"➖ **Predicted Movement:** {movement}%")
+    st.markdown('</div>', unsafe_allow_html=True)
+
