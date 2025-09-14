@@ -15,9 +15,9 @@ tokenizer, model = load_model()
 # --- Custom CSS for modern UI ---
 st.markdown("""
 <style>
-/* Background image */
+/* Background image: stock market chart */
 .stApp {
-    background-image: url("https://images.unsplash.com/photo-1561414927-6d86591d0c4f");
+    background-image: url("https://images.unsplash.com/photo-1641931640340-d3b3f8de2b0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -25,95 +25,103 @@ st.markdown("""
     color: #fff;
 }
 
-/* Overlay to make text readable */
+/* Ombré black overlay */
 .stApp::before {
     content: "";
     position: fixed;
     top: 0; left: 0;
     height: 100%; width: 100%;
-    background: rgba(0,0,0,0.6);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.9));
     z-index: -1;
 }
 
-/* Title */
-h1 {
-    text-align: center;
-    font-size: 3em;
-    margin-bottom: 10px;
-    color: #00e6ac;
-    text-shadow: 2px 2px 6px #000;
-}
-
-/* Thought bubble for input */
+/* General thought bubble style */
 .thought-bubble {
     background: white;
-    color: #333;
+    color: #222;
     border-radius: 30px;
-    padding: 20px;
-    position: relative;
+    padding: 25px 30px;
     margin: 30px auto;
-    max-width: 600px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    max-width: 700px;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
 }
 
 /* Bubble tail */
 .thought-bubble::after {
     content: "";
     position: absolute;
-    bottom: -20px;
-    left: 50px;
-    border-width: 20px 20px 0;
+    bottom: -25px;
+    left: 60px;
+    border-width: 25px 25px 0;
     border-style: solid;
     border-color: white transparent transparent transparent;
 }
 
-/* Prompt bubble with arrow */
-.prompt-bubble {
+/* Title bubble (centered, larger) */
+.title-bubble {
     background: #00e6ac;
     color: #000;
-    border-radius: 20px;
-    padding: 15px 25px;
-    position: relative;
-    display: inline-block;
-    margin: 15px 40px;
+    text-align: center;
+    font-size: 2.2em;
     font-weight: bold;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    border-radius: 40px;
+    padding: 25px 30px;
+    margin: 40px auto;
+    max-width: 800px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-.prompt-bubble::after {
+/* Title bubble tail */
+.title-bubble::after {
     content: "";
     position: absolute;
-    top: 50%;
-    right: -20px;
-    transform: translateY(-50%);
-    border-width: 10px 0 10px 20px;
+    bottom: -25px;
+    right: 120px;
+    border-width: 25px 25px 0;
     border-style: solid;
-    border-color: transparent transparent transparent #00e6ac;
+    border-color: #00e6ac transparent transparent transparent;
 }
 
-/* Results card */
-.results-card {
-    background: rgba(255,255,255,0.95);
+/* Input label inside thought bubble */
+textarea {
+    font-size: 1.1em !important;
+}
+
+/* Results bubble */
+.results-bubble {
+    background: #f9f9f9;
     color: #111;
-    border-radius: 20px;
+    border-radius: 30px;
     padding: 25px;
-    margin-top: 25px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    margin-top: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.results-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -25px;
+    left: 80px;
+    border-width: 25px 25px 0;
+    border-style: solid;
+    border-color: #f9f9f9 transparent transparent transparent;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- App Layout ---
-st.title("Finance News Sentiment & Stock Movement Predictor")
+st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Guidance bubble
+# Prompt bubble
 st.markdown("""
-<div class="prompt-bubble">
-    💬 What tweet should I analyze? Let's see how your favorite stock will be impacted!
+<div class="thought-bubble">
+    💭 What tweet should I analyze?  
+    Let’s see how your favorite stock will be impacted!
 </div>
 """, unsafe_allow_html=True)
 
-# Thought bubble with text input
+# Input bubble
 st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
 text = st.text_area("Enter stock news, tweets, or finance text:", "")
 st.markdown('</div>', unsafe_allow_html=True)
@@ -138,15 +146,21 @@ if st.button("Predict 🚀"):
     else:
         movement = 0.0
 
-    # Display results in a modern card
-    st.markdown('<div class="results-card">', unsafe_allow_html=True)
+    # Results bubble
+    st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
     st.subheader("📊 Sentiment Probabilities")
     for label, p in zip(sentiment_labels, probs):
         st.write(f"**{label}:** {p:.4f}")
 
     st.subheader("🧠 Predicted Sentiment & Stock Movement")
     st.write(f"**Sentiment:** {sentiment}")
-    st.write(f"**Predicted Stock Movement:** {movement}%")
+    if sentiment == "Positive":
+        st.write(f"📈 **Predicted Stock Movement:** +{movement}%")
+    elif sentiment == "Negative":
+        st.write(f"📉 **Predicted Stock Movement:** {movement}%")
+    else:
+        st.write(f"➖ **Predicted Stock Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
