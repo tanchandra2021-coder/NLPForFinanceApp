@@ -5,7 +5,7 @@ import numpy as np
 
 st.set_page_config(page_title="Finance News Sentiment", layout="wide")
 
-# --- Load model ---
+# --- Load FinBERT model ---
 @st.cache_resource
 def load_model():
     tokenizer = BertTokenizer.from_pretrained("ProsusAI/finbert")
@@ -14,7 +14,7 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Custom CSS for background and bubbles ---
+# --- Custom CSS ---
 st.markdown("""
 <style>
 /* Full-page stock market background */
@@ -109,19 +109,4 @@ div.stButton > button:hover {
     transform: translateY(-2px);
 }
 </style>
-""", unsafe_allow_html=True)
-
-# --- App layout ---
-st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
-
-# Input bubble
-st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
-text = st.text_area("💭 Paste your stock news, tweets, or finance text here:", "")
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Prediction button
-if st.button("Predict 🚀"):
-    # Process sentiment
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    with
-
+""",
