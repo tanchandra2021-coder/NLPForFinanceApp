@@ -2,8 +2,6 @@ import streamlit as st
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
 
 st.set_page_config(page_title="Finance News Sentiment", layout="wide")
 
@@ -16,54 +14,27 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Generate sample stock data ---
-def generate_stock_data(days=50):
-    np.random.seed(42)
-    price = 100 + np.cumsum(np.random.randn(days))
-    open_price = price + np.random.randn(days)
-    close_price = price + np.random.randn(days)
-    high_price = np.maximum(open_price, close_price) + np.random.rand(days) * 2
-    low_price = np.minimum(open_price, close_price) - np.random.rand(days) * 2
-    df = pd.DataFrame({
-        'Date': pd.date_range(end=pd.Timestamp.today(), periods=days),
-        'Open': open_price,
-        'High': high_price,
-        'Low': low_price,
-        'Close': close_price
-    })
-    return df
-
-df = generate_stock_data()
-
-# --- Plotly candlestick chart ---
-fig = go.Figure(data=[go.Candlestick(
-    x=df['Date'],
-    open=df['Open'],
-    high=df['High'],
-    low=df['Low'],
-    close=df['Close'],
-    increasing_line_color='green',
-    decreasing_line_color='red',
-    opacity=0.3
-)])
-fig.update_layout(
-    xaxis_rangeslider_visible=False,
-    template='plotly_dark',
-    margin=dict(l=0,r=0,t=0,b=0),
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    height=600
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# --- Custom CSS ---
+# --- Custom CSS for background and bubbles ---
 st.markdown("""
 <style>
+/* Full-page background image */
 .stApp {
+    background-image: url("https://cdn.pixabay.com/photo/2015/09/04/23/28/stock-923706_1280.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     font-family: "Helvetica Neue", sans-serif;
     color: #fff;
-    background: #000;  /* fallback */
+}
+
+/* Overlay to make text readable */
+.stApp::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    height: 100%; width: 100%;
+    background: rgba(0,0,0,0.5);  /* Semi-transparent overlay */
+    z-index: -1;
 }
 
 /* Title bubble */
@@ -150,7 +121,6 @@ text = st.text_area("💭 Paste your stock news, tweets, or finance text here:",
 st.markdown('</div>', unsafe_allow_html=True)
 
 if st.button("Predict 🚀"):
-    # Preprocess
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
     with torch.no_grad():
         outputs = model(**inputs)
@@ -184,4 +154,3 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
-
