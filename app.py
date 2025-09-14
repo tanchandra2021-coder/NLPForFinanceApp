@@ -14,12 +14,12 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Custom CSS ---
+# --- Custom CSS for background and bubbles ---
 st.markdown("""
 <style>
-/* Full-page stock market background */
+/* Full-page Unsplash background */
 [data-testid="stAppViewContainer"] {
-    background-image: url("https://cdn.pixabay.com/photo/2015/09/04/23/28/stock-923706_1280.jpg");
+    background-image: url("https://images.unsplash.com/photo-1593013805987-879f3fc8f367?auto=format&fit=crop&w=1470&q=80");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -109,7 +109,7 @@ div.stButton > button:hover {
     transform: translateY(-2px);
 }
 </style>
-""", unsafe_allow_html=True)  # <- triple quotes properly closed here
+""", unsafe_allow_html=True)
 
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
@@ -156,4 +156,3 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
-
