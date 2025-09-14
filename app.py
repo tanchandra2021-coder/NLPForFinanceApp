@@ -16,7 +16,6 @@ tokenizer, model = load_model()
 
 # --- Generate sample stock data for candlestick ---
 def generate_sample_stock():
-    # Simulate 30 days of stock prices
     np.random.seed(42)
     price = 100 + np.cumsum(np.random.randn(30))
     open_price = price + np.random.randn(30)
@@ -55,7 +54,7 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Custom CSS for bubbles ---
+# --- Custom CSS for bubbles and input ---
 st.markdown("""
 <style>
 .stApp {
@@ -63,7 +62,7 @@ st.markdown("""
     color: #fff;
 }
 
-/* Thought bubble style */
+/* Thought bubble style for input */
 .thought-bubble {
     background: rgba(255,255,255,0.95);
     color: #222;
@@ -88,101 +87,4 @@ st.markdown("""
 
 /* Title bubble */
 .title-bubble {
-    background: #00e6ac;
-    color: #000;
-    text-align: center;
-    font-size: 2.2em;
-    font-weight: bold;
-    border-radius: 40px;
-    padding: 25px 30px;
-    margin: 40px auto;
-    max-width: 800px;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-}
-.title-bubble::after {
-    content: "";
-    position: absolute;
-    bottom: -25px;
-    right: 120px;
-    border-width: 25px 25px 0;
-    border-style: solid;
-    border-color: #00e6ac transparent transparent transparent;
-}
-
-/* Results bubble */
-.results-bubble {
-    background: rgba(249,249,249,0.95);
-    color: #000 !important;  
-    border-radius: 30px;
-    padding: 25px;
-    margin-top: 30px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    position: relative;
-}
-.results-bubble * {
-    color: #000 !important;
-}
-
-/* Black Predict button */
-div.stButton > button {
-    background-color: #000;
-    color: #fff;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 1.1em;
-    padding: 10px 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-    transition: 0.3s;
-}
-div.stButton > button:hover {
-    background-color: #333;
-    transform: translateY(-2px);
-}
-</style>
-""", unsafe_allow_html=True)
-
-# --- App Layout ---
-st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
-
-st.markdown("""
-<div class="thought-bubble">
-    💭 Paste your stock news, tweets, or finance text below and predict its impact!
-</div>
-""", unsafe_allow_html=True)
-
-text = st.text_area("Paste stock news or tweets here:", "")
-
-if st.button("Predict 🚀"):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
-
-    sentiment_labels = ["Positive", "Neutral", "Negative"]
-    sentiment_idx = np.argmax(probs)
-    sentiment = sentiment_labels[sentiment_idx]
-
-    if sentiment == "Positive":
-        movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
-    elif sentiment == "Negative":
-        movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
-    else:
-        movement = 0.0
-
-    st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
-    st.subheader("📊 Sentiment Probabilities")
-    for label, p in zip(sentiment_labels, probs):
-        st.write(f"**{label}:** {p:.4f}")
-
-    st.subheader("🧠 Predicted Sentiment & Stock Movement")
-    if sentiment == "Positive":
-        st.write(f"📈 **Sentiment:** {sentiment}")
-        st.write(f"📈 **Predicted Movement:** +{movement}%")
-    elif sentiment == "Negative":
-        st.write(f"📉 **Sentiment:** {sentiment}")
-        st.write(f"📉 **Predicted Movement:** {movement}%")
-    else:
-        st.write(f"➖ **Sentiment:** {sentiment}")
-        st.write(f"➖ **Predicted Movement:** {movement}%")
-    st.markdown('</div>', unsafe_allow_html=True)
+    backgro
