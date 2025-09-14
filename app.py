@@ -31,11 +31,11 @@ st.markdown("""
     position: fixed;
     top: 0; left: 0;
     height: 100%; width: 100%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.9));
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.95));
     z-index: -1;
 }
 
-/* General thought bubble style */
+/* Thought bubble style */
 .thought-bubble {
     background: white;
     color: #222;
@@ -58,7 +58,7 @@ st.markdown("""
     border-color: white transparent transparent transparent;
 }
 
-/* Title bubble (centered, larger) */
+/* Title bubble */
 .title-bubble {
     background: #00e6ac;
     color: #000;
@@ -72,8 +72,6 @@ st.markdown("""
     position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
-
-/* Title bubble tail */
 .title-bubble::after {
     content: "";
     position: absolute;
@@ -84,7 +82,7 @@ st.markdown("""
     border-color: #00e6ac transparent transparent transparent;
 }
 
-/* Input label inside thought bubble */
+/* Textarea inside bubble */
 textarea {
     font-size: 1.1em !important;
 }
@@ -107,23 +105,39 @@ textarea {
     border-style: solid;
     border-color: #f9f9f9 transparent transparent transparent;
 }
+
+/* Black Predict button */
+div.stButton > button {
+    background-color: #000;
+    color: #fff;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 10px 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    transition: 0.3s;
+}
+div.stButton > button:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+}
 </style>
 """, unsafe_allow_html=True)
 
 # --- App Layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Prompt bubble
+# Guidance bubble
 st.markdown("""
 <div class="thought-bubble">
-    💭 What tweet should I analyze?  
-    Let’s see how your favorite stock will be impacted!
+    💭 Want to see how a piece of news or a tweet will impact your stock's performance?  
+    Copy it below, and we’ll predict it!
 </div>
 """, unsafe_allow_html=True)
 
 # Input bubble
 st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
-text = st.text_area("Enter stock news, tweets, or finance text:", "")
+text = st.text_area("Paste stock news, tweets, or finance text here:", "")
 st.markdown('</div>', unsafe_allow_html=True)
 
 if st.button("Predict 🚀"):
@@ -153,14 +167,17 @@ if st.button("Predict 🚀"):
         st.write(f"**{label}:** {p:.4f}")
 
     st.subheader("🧠 Predicted Sentiment & Stock Movement")
-    st.write(f"**Sentiment:** {sentiment}")
     if sentiment == "Positive":
-        st.write(f"📈 **Predicted Stock Movement:** +{movement}%")
+        st.write(f"📈 **Sentiment:** {sentiment}")
+        st.write(f"📈 **Predicted Movement:** +{movement}%")
     elif sentiment == "Negative":
-        st.write(f"📉 **Predicted Stock Movement:** {movement}%")
+        st.write(f"📉 **Sentiment:** {sentiment}")
+        st.write(f"📉 **Predicted Movement:** {movement}%")
     else:
-        st.write(f"➖ **Predicted Stock Movement:** {movement}%")
+        st.write(f"➖ **Sentiment:** {sentiment}")
+        st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
