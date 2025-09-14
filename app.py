@@ -2,8 +2,10 @@ import streamlit as st
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 
-# Load pre-trained model and tokenizer
+# --- Load pre-trained model ---
 @st.cache_resource
 def load_model():
     tokenizer = BertTokenizer.from_pretrained("ProsusAI/finbert")
@@ -12,32 +14,58 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Custom CSS for modern UI with animated stock background ---
+# --- Generate sample stock data for candlestick ---
+def generate_sample_stock():
+    # Simulate 30 days of stock prices
+    np.random.seed(42)
+    price = 100 + np.cumsum(np.random.randn(30))
+    open_price = price + np.random.randn(30)
+    close_price = price + np.random.randn(30)
+    high_price = np.maximum(open_price, close_price) + np.random.rand(30)*2
+    low_price = np.minimum(open_price, close_price) - np.random.rand(30)*2
+    df = pd.DataFrame({
+        'Date': pd.date_range(end=pd.Timestamp.today(), periods=30),
+        'Open': open_price,
+        'High': high_price,
+        'Low': low_price,
+        'Close': close_price
+    })
+    return df
+
+df = generate_sample_stock()
+
+# --- Plotly Candlestick Chart ---
+fig = go.Figure(data=[go.Candlestick(
+    x=df['Date'],
+    open=df['Open'],
+    high=df['High'],
+    low=df['Low'],
+    close=df['Close'],
+    increasing_line_color='green',
+    decreasing_line_color='red',
+    opacity=0.3
+)])
+fig.update_layout(
+    xaxis_rangeslider_visible=False,
+    template='plotly_dark',
+    margin=dict(l=0,r=0,t=0,b=0),
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)'
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Custom CSS for bubbles ---
 st.markdown("""
 <style>
-/* Animated GIF background */
 .stApp {
-    background-image: url("https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
     font-family: "Helvetica Neue", sans-serif;
     color: #fff;
 }
 
-/* Semi-transparent black overlay for readability */
-.stApp::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0;
-    height: 100%; width: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: -1;
-}
-
 /* Thought bubble style */
 .thought-bubble {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255,255,255,0.95);
     color: #222;
     border-radius: 30px;
     padding: 25px 30px;
@@ -82,14 +110,9 @@ st.markdown("""
     border-color: #00e6ac transparent transparent transparent;
 }
 
-/* Textarea inside bubble */
-textarea {
-    font-size: 1.1em !important;
-}
-
 /* Results bubble */
 .results-bubble {
-    background: rgba(249, 249, 249, 0.95);
+    background: rgba(249,249,249,0.95);
     color: #000 !important;  
     border-radius: 30px;
     padding: 25px;
@@ -99,15 +122,6 @@ textarea {
 }
 .results-bubble * {
     color: #000 !important;
-}
-.results-bubble::after {
-    content: "";
-    position: absolute;
-    bottom: -25px;
-    left: 80px;
-    border-width: 25px 25px 0;
-    border-style: solid;
-    border-color: rgba(249,249,249,0.95) transparent transparent transparent;
 }
 
 /* Black Predict button */
@@ -131,23 +145,16 @@ div.stButton > button:hover {
 # --- App Layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Guidance bubble
 st.markdown("""
 <div class="thought-bubble">
-    💭 Want to see how a piece of news or a tweet will impact your stock's performance?  
-    Copy it below, and we’ll predict it!
+    💭 Paste your stock news, tweets, or finance text below and predict its impact!
 </div>
 """, unsafe_allow_html=True)
 
-# Input bubble
-st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
-text = st.text_area("Paste stock news, tweets, or finance text here:", "")
-st.markdown('</div>', unsafe_allow_html=True)
+text = st.text_area("Paste stock news or tweets here:", "")
 
 if st.button("Predict 🚀"):
-    # Preprocess
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-
     with torch.no_grad():
         outputs = model(**inputs)
         probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
@@ -156,7 +163,6 @@ if st.button("Predict 🚀"):
     sentiment_idx = np.argmax(probs)
     sentiment = sentiment_labels[sentiment_idx]
 
-    # Cap predicted stock movement to +/-10%
     if sentiment == "Positive":
         movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
     elif sentiment == "Negative":
@@ -164,7 +170,6 @@ if st.button("Predict 🚀"):
     else:
         movement = 0.0
 
-    # Results bubble
     st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
     st.subheader("📊 Sentiment Probabilities")
     for label, p in zip(sentiment_labels, probs):
@@ -181,4 +186,3 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
-
