@@ -17,7 +17,7 @@ st.markdown("""
 <style>
 /* Background image: stock market chart */
 .stApp {
-    background-image: url("https://images.unsplash.com/photo-1641931640340-d3b3f8de2b0f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80");
+    background-image: url("https://unsplash.com/photos/black-android-smartphone-on-brown-wooden-table-VP4WmibxvcY");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
