@@ -5,7 +5,7 @@ import numpy as np
 
 st.set_page_config(page_title="Finance News Sentiment", layout="wide")
 
-# --- Load FinBERT model ---
+# --- Load model ---
 @st.cache_resource
 def load_model():
     tokenizer = BertTokenizer.from_pretrained("ProsusAI/finbert")
@@ -14,33 +14,32 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# --- Custom CSS for background and bubbles ---
+# --- Custom CSS ---
 st.markdown("""
 <style>
 /* Full-page background image */
-.stApp {
+[data-testid="stAppViewContainer"] {
     background-image: url("https://cdn.pixabay.com/photo/2015/09/04/23/28/stock-923706_1280.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    font-family: "Helvetica Neue", sans-serif;
-    color: #fff;
+    position: relative;
 }
 
-/* Overlay to make text readable */
-.stApp::before {
+/* Semi-transparent overlay for readability */
+[data-testid="stAppViewContainer"]::before {
     content: "";
-    position: fixed;
+    position: absolute;
     top: 0; left: 0;
-    height: 100%; width: 100%;
-    background: rgba(0,0,0,0.5);  /* Semi-transparent overlay */
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
     z-index: -1;
 }
 
 /* Title bubble */
 .title-bubble {
     background: #00e6ac;
-    color: #000;
+    color: #000 !important;
     text-align: center;
     font-size: 2.2em;
     font-weight: bold;
@@ -54,7 +53,7 @@ st.markdown("""
 /* Thought bubble for input */
 .thought-bubble {
     background: rgba(255,255,255,0.95);
-    color: #222;
+    color: #222 !important;
     border-radius: 30px;
     padding: 25px 30px;
     margin: 20px auto;
@@ -72,12 +71,13 @@ st.markdown("""
     border-color: rgba(255,255,255,0.95) transparent transparent transparent;
 }
 
-/* Textarea inside bubble */
+/* Force textarea text to be dark */
 textarea {
     font-size: 1.1em !important;
     border-radius: 15px !important;
     padding: 10px !important;
     border: 1px solid #ccc !important;
+    color: #222 !important;
 }
 
 /* Results bubble */
@@ -90,7 +90,14 @@ textarea {
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     position: relative;
 }
-.results-bubble * {
+.results-bubble h2, 
+.results-bubble h3, 
+.results-bubble h4, 
+.results-bubble h5, 
+.results-bubble h6, 
+.results-bubble p, 
+.results-bubble span, 
+.results-bubble div {
     color: #000 !important;
 }
 
@@ -112,7 +119,7 @@ div.stButton > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# --- App layout ---
+# --- Layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
 # Input bubble
@@ -121,6 +128,7 @@ text = st.text_area("💭 Paste your stock news, tweets, or finance text here:",
 st.markdown('</div>', unsafe_allow_html=True)
 
 if st.button("Predict 🚀"):
+    # Process sentiment
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
     with torch.no_grad():
         outputs = model(**inputs)
@@ -130,12 +138,11 @@ if st.button("Predict 🚀"):
     sentiment_idx = np.argmax(probs)
     sentiment = sentiment_labels[sentiment_idx]
 
+    movement = 0.0
     if sentiment == "Positive":
         movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
     elif sentiment == "Negative":
         movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
-    else:
-        movement = 0.0
 
     # Results bubble
     st.markdown('<div class="thought-bubble results-bubble">', unsafe_allow_html=True)
@@ -154,3 +161,4 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
+
