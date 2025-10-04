@@ -42,7 +42,6 @@ def set_bg_local(image_file):
     """, unsafe_allow_html=True)
 
 # Note: This will only work if you have a local file named 'stock_app.avif'.
-# If you don't have this file, the background will be black/default.
 try:
     set_bg_local("stock_app.avif")
 except FileNotFoundError:
@@ -51,7 +50,7 @@ except FileNotFoundError:
 # --- Custom CSS ---
 st.markdown("""
 <style>
-/* Main Title Bubble */
+/* Main Title Bubble (Green) */
 .title-bubble {
     background: #00e6ac;
     color: #000 !important;
@@ -65,17 +64,24 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* Sub-header Instruction Bubble */
+/* 🟢 Aesthetic Instruction Bubble (The IMessage Bubble) 🟢 */
 .input-bubble {
-    background: rgba(255,255,255,0.95);
-    border-radius: 50px;
-    padding: 25px 30px;
-    margin: 20px auto;
-    max-width: 700px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    /* iMessage-like Green/Blue Bubble */
+    background: #0084ff; /* A bright, friendly blue like iMessage */
+    color: #fff !important; /* White text */
     font-family: "Helvetica Neue", sans-serif;
-    color: #000;
     font-size: 1.2em;
+    line-height: 1.4;
+
+    /* Speech Bubble Shape */
+    border-radius: 25px 25px 5px 25px; /* Rounded top-left, top-right, bottom-right, but pointed bottom-left */
+    padding: 20px 25px;
+    margin: 30px auto 20px auto;
+    max-width: 700px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* Softer shadow */
+}
+.input-bubble * {
+    color: #fff !important;
 }
 
 /* Results Bubble */
@@ -91,36 +97,24 @@ st.markdown("""
     color: #fff !important;
 }
 
-/* Aesthetic Text Area Bubble - TARGETING STREAMLIT COMPONENTS */
-
-/* The entire container for the text area widget */
+/* Text Area (Keeping it clean and functional) */
 .stTextArea > div {
-    /* Center the text area */
     margin: 0 auto; 
     max-width: 700px; 
 }
-
-/* The actual text area element */
 .stTextArea textarea {
-    /* iMessage-like/Thought Bubble Style */
-    background: #e3f8fe !important; /* Light blue/white background */
+    background: #ffffff !important; 
     color: #222 !important;
     font-size: 1.1em !important;
-    line-height: 1.5;
-    
-    /* Rounded corners - more like a speech bubble */
-    border-radius: 25px 25px 25px 5px !important; /* Custom rounding for a bubble look */
-    border: none !important; /* Remove border */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important; /* Soft shadow */
-    padding: 15px 20px !important; /* Inner padding */
-    transition: all 0.3s ease;
+    border-radius: 15px !important; 
+    border: 1px solid #ccc !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px !important;
 }
-
-/* Focus state for the text area */
 .stTextArea textarea:focus {
-    box-shadow: 0 0 0 3px #00e6ac, 0 4px 15px rgba(0, 0, 0, 0.2) !important; /* Green glow on focus */
+    border: 1px solid #00e6ac !important;
+    box-shadow: 0 0 0 3px rgba(0, 230, 172, 0.5) !important;
 }
-
 
 /* Button Styling */
 div.stButton > button {
@@ -143,12 +137,11 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Input bubble (Header)
+# 📣 Instruction Bubble - NOW THE IMESSAGE STYLE
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
-# Text Area Widget
-# Note: The custom styling is applied via the CSS above targeting the stTextArea elements.
-text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'")
+# Text Area Widget (Cleaned up a bit for contrast)
+text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
 # Prediction
 col1, col2, col3 = st.columns([1,1,1])
@@ -167,12 +160,9 @@ with col2:
 
             # --- Simplified Stock Movement Estimation ---
             movement = 0.0
-            # Scale the probability of the predicted sentiment to estimate movement
             if sentiment == "Positive":
-                # Ensure movement is positive, max out at 10%
                 movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
             elif sentiment == "Negative":
-                # Ensure movement is negative, max out at -10%
                 movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
             
             # --- Results Display ---
