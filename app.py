@@ -4,6 +4,8 @@ import torch
 import numpy as np
 import base64
 import plotly.graph_objects as go
+import yfinance as yf
+from datetime import datetime
 
 # --- Page config ---
 st.set_page_config(page_title="Finance News Sentiment", layout="wide")
@@ -16,6 +18,37 @@ def load_model():
     return tokenizer, model
 
 tokenizer, model = load_model()
+
+# --- Get real-time stock data ---
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_stock_data():
+    tickers = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX']
+    stock_data = []
+    
+    for ticker in tickers:
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            current_price = info.get('currentPrice', info.get('regularMarketPrice', 0))
+            prev_close = info.get('previousClose', current_price)
+            
+            if prev_close and prev_close > 0:
+                change_percent = ((current_price - prev_close) / prev_close) * 100
+            else:
+                change_percent = 0
+            
+            stock_data.append({
+                'ticker': ticker,
+                'change': change_percent
+            })
+        except:
+            # Fallback if API fails
+            stock_data.append({
+                'ticker': ticker,
+                'change': 0
+            })
+    
+    return stock_data
 
 # --- Set background image ---
 def set_bg_local(image_file):
@@ -460,6 +493,9 @@ header {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 # --- Main content ---
+# Get real-time stock data
+stock_data = get_stock_data()
+
 # Floating finance graphics in corners
 st.markdown('''
 <div class="finance-graphic graphic-1">📈</div>
@@ -470,26 +506,22 @@ st.markdown('''
 <div class="finance-graphic graphic-6">💎</div>
 ''', unsafe_allow_html=True)
 
-# Animated stock ticker at bottom
-st.markdown('''
+# Build ticker HTML with real data
+ticker_items = ""
+for stock in stock_data:
+    arrow = "↗" if stock['change'] >= 0 else "↘"
+    css_class = "ticker-up" if stock['change'] >= 0 else "ticker-down"
+    sign = "+" if stock['change'] >= 0 else ""
+    ticker_items += f'<span class="ticker-item {css_class}">{stock["ticker"]} {arrow} {sign}{stock["change"]:.2f}%</span>'
+
+# Duplicate for seamless loop
+ticker_items_doubled = ticker_items + ticker_items
+
+# Animated stock ticker at bottom with real data
+st.markdown(f'''
 <div class="stock-ticker">
     <div class="ticker-content">
-        <span class="ticker-item ticker-up">AAPL ↗ +2.4%</span>
-        <span class="ticker-item ticker-down">TSLA ↘ -1.2%</span>
-        <span class="ticker-item ticker-up">MSFT ↗ +1.8%</span>
-        <span class="ticker-item ticker-up">GOOGL ↗ +3.1%</span>
-        <span class="ticker-item ticker-down">AMZN ↘ -0.5%</span>
-        <span class="ticker-item ticker-up">NVDA ↗ +5.2%</span>
-        <span class="ticker-item ticker-up">META ↗ +2.7%</span>
-        <span class="ticker-item ticker-down">NFLX ↘ -1.8%</span>
-        <span class="ticker-item ticker-up">AAPL ↗ +2.4%</span>
-        <span class="ticker-item ticker-down">TSLA ↘ -1.2%</span>
-        <span class="ticker-item ticker-up">MSFT ↗ +1.8%</span>
-        <span class="ticker-item ticker-up">GOOGL ↗ +3.1%</span>
-        <span class="ticker-item ticker-down">AMZN ↘ -0.5%</span>
-        <span class="ticker-item ticker-up">NVDA ↗ +5.2%</span>
-        <span class="ticker-item ticker-up">META ↗ +2.7%</span>
-        <span class="ticker-item ticker-down">NFLX ↘ -1.8%</span>
+        {ticker_items_doubled}
     </div>
 </div>
 ''', unsafe_allow_html=True)
