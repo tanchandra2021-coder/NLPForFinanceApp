@@ -35,147 +35,189 @@ def set_bg_local(image_file):
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        background: rgba(0,0,0,0.2);
+        background: rgba(0,0,0,0.3);
         z-index: -1;
     }}
     </style>
     """, unsafe_allow_html=True)
 
-# Note: This will only work if you have a local file named 'stock_app.avif'.
 try:
     set_bg_local("stock_app.avif")
 except FileNotFoundError:
-    st.warning("⚠️ Background image 'stock_app.avif' not found. Using default background.")
+    pass
 
 # --- Custom CSS ---
 st.markdown("""
 <style>
-/* ⚙️ GLOBAL FUTURISTIC FONT ⚙️ (Applied to text input) */
-.stTextArea textarea, .stButton > button, .results-bubble {
-    /* Use a futuristic font stack for an elegant, impressive look */
-    font-family: 'Orbitron', 'Roboto Mono', monospace !important; 
+/* Global Font */
+* {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
 }
 
-
-/* Main Title Bubble (Green) */
+/* Main Title Bubble */
 .title-bubble {
-    background: #00e6ac;
+    background: linear-gradient(135deg, #00f2a9 0%, #00d4a0 100%);
     color: #000 !important;
     text-align: center;
-    font-size: 2.2em;
-    font-weight: bold;
-    border-radius: 40px;
-    padding: 25px 30px;
-    margin: 40px auto 20px auto;
-    max-width: 800px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    font-size: 2.5em;
+    font-weight: 700;
+    border-radius: 25px;
+    padding: 30px 40px;
+    margin: 40px auto 30px auto;
+    max-width: 850px;
+    box-shadow: 0 15px 50px rgba(0,242,169,0.4), 0 5px 15px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
 }
 
-/* 🟢 Instruction Bubble (Sent Message Blue/Right Tail) 🟢 */
+/* iMessage Blue Bubble (Sent Message) */
 .input-bubble {
-    position: relative; 
-    background: #0084ff; 
-    color: #fff !important; 
-    font-family: 'Orbitron', sans-serif; /* Apply futuristic font to instruction */
-    font-size: 1.2em;
-    line-height: 1.4;
-    border-radius: 25px; 
-    padding: 20px 25px;
-    margin: 30px auto 40px auto; /* Increased margin for better tail visibility */
-    max-width: 700px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
+    position: relative;
+    background: #0084ff;
+    color: #fff !important;
+    font-size: 1.15em;
+    line-height: 1.5;
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin: 25px auto 45px auto;
+    max-width: 680px;
+    box-shadow: 0 4px 12px rgba(0,132,255,0.3);
+    margin-left: auto;
+    margin-right: 50px;
 }
+
 .input-bubble * {
     color: #fff !important;
 }
 
-/* Tail for Instruction Bubble (Bottom-Right, SMOOTH CURVE) */
+/* Proper iMessage tail for blue bubble (bottom right) */
 .input-bubble::after {
     content: '';
     position: absolute;
-    z-index: 1; 
-    bottom: -15px; /* Position the tail below the bubble */
-    right: 5px; /* Position next to the bubble edge */
+    bottom: 0;
+    right: -8px;
     width: 20px;
+    height: 25px;
+    background: #0084ff;
+    border-bottom-left-radius: 16px 14px;
+    transform: translateY(0);
+}
+
+.input-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -10px;
+    width: 10px;
     height: 20px;
-    background: #0084ff; 
-    /* The trick for the smooth curve */
-    border-bottom-left-radius: 20px;
-    transform: rotate(30deg); 
-    box-shadow: 4px 4px 5px rgba(0,0,0,0.1); 
+    background: transparent;
+    border-bottom-left-radius: 10px;
 }
 
-
-/* Results Bubble */
-.results-bubble {
-    background: rgba(0,0,0,0.8);
-    color: #fff !important;
-    border-radius: 30px;
-    padding: 25px;
-    margin-top: 30px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
-
-/* 💬 Text Area Input Bubble (Received Message Gray/Left Tail) 💬 */
-
-/* The entire container for the text area widget */
+/* Text Area Container */
 .stTextArea > div {
-    margin: 0 auto 30px auto; 
-    max-width: 700px; 
-    position: relative; 
+    margin: 0 50px 40px 0;
+    max-width: 680px;
+    position: relative;
 }
 
-/* The actual text area element */
+/* iMessage Gray Bubble (Received Message) */
 .stTextArea textarea {
-    background: #e5e5ea !important; /* Light Gray for received message */
-    color: #222 !important;
+    background: #e5e5ea !important;
+    color: #000 !important;
     font-size: 1.1em !important;
-    line-height: 1.5;
-    
-    /* Main body should be fully rounded */
-    border-radius: 25px !important; 
+    line-height: 1.5 !important;
+    border-radius: 20px !important;
     border: none !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
-    padding: 15px 20px !important; 
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    padding: 16px 20px !important;
+    transition: all 0.2s ease;
 }
 
-/* Tail for Text Input Area (Bottom-Left, SMOOTH CURVE) */
+.stTextArea textarea:focus {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+    outline: none !important;
+}
+
+/* Proper iMessage tail for gray bubble (bottom left) */
 .stTextArea > div::after {
     content: '';
     position: absolute;
-    z-index: 1;
-    bottom: -15px; /* Position the tail below the bubble */
-    left: 5px; /* Position next to the bubble edge */
+    bottom: 0;
+    left: -8px;
     width: 20px;
+    height: 25px;
+    background: #e5e5ea;
+    border-bottom-right-radius: 16px 14px;
+    z-index: 0;
+}
+
+.stTextArea > div::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -10px;
+    width: 10px;
     height: 20px;
-    background: #e5e5ea; 
-    /* The trick for the smooth curve */
-    border-bottom-right-radius: 20px; 
-    transform: rotate(-30deg); /* Mirror the rotation for the left side */
-    box-shadow: -4px 4px 5px rgba(0,0,0,0.1); 
+    background: transparent;
+    border-bottom-right-radius: 10px;
+    z-index: 1;
 }
 
-/* Fix for Streamlit's inner padding issue that affects centering and tail positioning */
-div[data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:first-child {
-    padding-top: 0 !important;
+/* Results Bubble */
+.results-bubble {
+    background: rgba(20,20,20,0.95);
+    backdrop-filter: blur(20px);
+    color: #fff !important;
+    border-radius: 25px;
+    padding: 30px 35px;
+    margin: 30px auto;
+    max-width: 700px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 80px rgba(0,242,169,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Button Styling */
+.results-bubble h3 {
+    color: #00f2a9 !important;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* Button */
 div.stButton > button {
-    background-color: #00e6ac; /* Use the accent color for the button */
+    background: linear-gradient(135deg, #00f2a9 0%, #00d4a0 100%);
     color: #000;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 1.1em;
-    padding: 10px 20px;
-    box-shadow: 0 5px 15px rgba(0,230,172,0.6); /* Green shadow for button */
-    transition: 0.3s;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.15em;
+    padding: 14px 40px;
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,242,169,0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.5px;
 }
+
 div.stButton > button:hover {
-    background-color: #00cc99;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,242,169,0.6);
+}
+
+div.stButton > button:active {
+    transform: translateY(-1px);
+}
+
+/* Hide Streamlit branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Smooth animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results-bubble {
+    animation: fadeIn 0.5s ease-out;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -183,18 +225,14 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# 📣 Instruction Bubble (Sent Message Blue with smooth tail and down arrow emoji)
-st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below **(with a down arrow ⬇️)**. We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
+st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below ⬇️. We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
-# Text Area Widget (Received Message Gray with smooth tail)
 text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
-# Prediction
 col1, col2, col3 = st.columns([1,1,1])
 with col2:
     if st.button("Predict 🚀"):
         if text.strip() != "":
-            # --- Model Prediction Logic ---
             inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
             with torch.no_grad():
                 outputs = model(**inputs)
@@ -204,14 +242,12 @@ with col2:
             sentiment_idx = np.argmax(probs)
             sentiment = sentiment_labels[sentiment_idx]
 
-            # --- Simplified Stock Movement Estimation ---
             movement = 0.0
             if sentiment == "Positive":
                 movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
             elif sentiment == "Negative":
                 movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
             
-            # --- Results Display ---
             st.markdown('<div class="results-bubble">', unsafe_allow_html=True)
             st.subheader("📊 Sentiment Probabilities")
             for label, p in zip(sentiment_labels, probs):
@@ -219,21 +255,20 @@ with col2:
 
             st.subheader("🧠 Predicted Sentiment & Stock Movement")
             if sentiment == "Positive":
-                st.write(f"📈 **Sentiment:** <span style='color: #00e6ac; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
+                st.write(f"📈 **Sentiment:** <span style='color: #00f2a9; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
                 st.write(f"📈 **Predicted Movement:** +{movement}%")
             elif sentiment == "Negative":
-                st.write(f"📉 **Sentiment:** <span style='color: #ff6347; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
+                st.write(f"📉 **Sentiment:** <span style='color: #ff6b6b; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
                 st.write(f"📉 **Predicted Movement:** {movement}%")
             else:
-                st.write(f"➖ **Sentiment:** <span style='color: #ffd700; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
+                st.write(f"➖ **Sentiment:** <span style='color: #ffd93d; font-weight: bold;'>{sentiment}</span>", unsafe_allow_html=True)
                 st.write(f"➖ **Predicted Movement:** {movement}%")
             
-            # --- Disclaimer ---
             st.markdown(
                 """
-                <hr style="border: 0.5px solid rgba(255,255,255,0.2); margin: 15px 0;">
-                <p style="font-size: 0.8em; color: #aaa; font-family: sans-serif !important;">
-                    *Disclaimer: This is a sentiment analysis prediction based on the FinBERT model and does not constitute financial advice. Stock movement prediction is for illustrative purposes only.*
+                <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
+                <p style="font-size: 0.85em; color: #888; text-align: center;">
+                    <em>Disclaimer: This is a sentiment analysis prediction based on the FinBERT model and does not constitute financial advice. Stock movement prediction is for illustrative purposes only.</em>
                 </p>
                 """, unsafe_allow_html=True)
 
