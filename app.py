@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import numpy as np
@@ -64,25 +64,40 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* 🟢 Aesthetic Instruction Bubble (The IMessage Bubble) 🟢 */
+/* 🟢 Aesthetic Instruction Bubble (Sent Message Blue) 🟢 */
 .input-bubble {
-    /* iMessage-like Green/Blue Bubble */
-    background: #0084ff; /* A bright, friendly blue like iMessage */
-    color: #fff !important; /* White text */
+    position: relative; /* Needed for the ::after pseudo-element */
+    background: #0084ff; 
+    color: #fff !important; 
     font-family: "Helvetica Neue", sans-serif;
     font-size: 1.2em;
     line-height: 1.4;
-
-    /* Speech Bubble Shape */
-    border-radius: 25px 25px 5px 25px; /* Rounded top-left, top-right, bottom-right, but pointed bottom-left */
+    border-radius: 25px 25px 5px 25px; 
     padding: 20px 25px;
     margin: 30px auto 20px auto;
     max-width: 700px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* Softer shadow */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
 }
 .input-bubble * {
     color: #fff !important;
 }
+
+/* Add the tail for the Instruction Bubble (Coming from the bottom-right) */
+.input-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border: 15px solid transparent;
+    border-top-color: #0084ff; /* Match bubble color */
+    border-bottom: 0;
+    border-right: 0;
+    margin-right: -5px; /* Adjust horizontal position */
+    margin-bottom: -5px; /* Adjust vertical position */
+}
+
 
 /* Results Bubble */
 .results-bubble {
@@ -97,24 +112,52 @@ st.markdown("""
     color: #fff !important;
 }
 
-/* Text Area (Keeping it clean and functional) */
+/* 💬 Text Area Input Bubble (Received Message Gray) 💬 */
+
+/* The entire container for the text area widget */
 .stTextArea > div {
-    margin: 0 auto; 
+    margin: 0 auto 30px auto; /* Add margin to bottom for tail */
     max-width: 700px; 
+    position: relative; /* Needed for the ::after pseudo-element */
 }
+
+/* The actual text area element */
 .stTextArea textarea {
-    background: #ffffff !important; 
+    background: #e5e5ea !important; /* Light Gray for received message */
     color: #222 !important;
     font-size: 1.1em !important;
-    border-radius: 15px !important; 
-    border: 1px solid #ccc !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 10px !important;
+    line-height: 1.5;
+    
+    /* Speech Bubble Shape */
+    border-radius: 25px 25px 25px 5px !important; /* Pointed bottom-left */
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    padding: 15px 20px !important; 
+    transition: all 0.3s ease;
 }
+
+/* Add the tail for the Text Input Area (Coming from the bottom-left) */
+.stTextArea > div::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border: 15px solid transparent;
+    border-top-color: #e5e5ea; /* Match textarea color */
+    border-bottom: 0;
+    border-left: 0;
+    margin-left: 20px; /* Position the tail a bit inside */
+    margin-bottom: -15px; /* Move the tail down below the box */
+    z-index: -1; /* Keep it behind the input box border */
+}
+
+/* Fix focus border */
 .stTextArea textarea:focus {
-    border: 1px solid #00e6ac !important;
-    box-shadow: 0 0 0 3px rgba(0, 230, 172, 0.5) !important;
+    box-shadow: 0 0 0 3px #00e6ac, 0 4px 15px rgba(0, 0, 0, 0.2) !important; 
 }
+
 
 /* Button Styling */
 div.stButton > button {
@@ -137,10 +180,10 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# 📣 Instruction Bubble - NOW THE IMESSAGE STYLE
+# 📣 Instruction Bubble (Sent Message Blue with tail)
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
-# Text Area Widget (Cleaned up a bit for contrast)
+# Text Area Widget (Received Message Gray with tail)
 text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
 # Prediction
@@ -194,4 +237,3 @@ with col2:
             st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.warning("Please enter some text to predict!")
-
