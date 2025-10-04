@@ -530,16 +530,32 @@ st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movem
 
 st.markdown('<div class="instruction-box">💭 Paste your stock news, tweets, or finance text below. We\'ll analyze sentiment, predict stock movement, and visualize the results with beautiful charts!</div>', unsafe_allow_html=True)
 
+# Analysis mode selector
+analysis_mode = st.radio(
+    "Select Analysis Mode:",
+    ["General Market Sentiment", "Tariff Impact Analysis"],
+    horizontal=True,
+    help="Choose between general financial sentiment or specialized tariff impact analysis"
+)
+
 # Demo mode toggle
 demo_mode = st.checkbox("🎬 Show Demo Example", value=False)
 
 if demo_mode:
-    st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "Apple iPhone sales increased 50%"</div>', unsafe_allow_html=True)
-    text = "Apple Inc. announces record-breaking Q4 earnings with revenue exceeding $120 billion, driven by strong iPhone 15 sales and robust services growth. The company exceeded analyst expectations by 15%, with CEO Tim Cook highlighting unprecedented demand in emerging markets. Stock surged 8% in after-hours trading as investors celebrated the stellar performance."
+    if analysis_mode == "Tariff Impact Analysis":
+        st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "New tariffs on steel imports"</div>', unsafe_allow_html=True)
+        text = "President announces new 25% tariffs on steel and aluminum imports, citing national security concerns. Industry groups warn of supply chain disruptions and increased costs for manufacturers. European Union threatens retaliatory measures."
+    else:
+        st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "Apple iPhone sales increased 50%"</div>', unsafe_allow_html=True)
+        text = "Apple Inc. announces record-breaking Q4 earnings with revenue exceeding $120 billion, driven by strong iPhone 15 sales and robust services growth. The company exceeded analyst expectations by 15%, with CEO Tim Cook highlighting unprecedented demand in emerging markets. Stock surged 8% in after-hours trading as investors celebrated the stellar performance."
     st.text_area("📝 Demo Input - Try your own text!", text, key="finance_text", height=150)
 else:
-    text = st.text_area("📝 Enter your finance text here:", "", key="finance_text", height=150, 
-                        placeholder="e.g., 'Tesla stock soars 20% after announcing breakthrough in battery technology...'")
+    if analysis_mode == "Tariff Impact Analysis":
+        text = st.text_area("📝 Enter tariff-related news or social media post:", "", key="finance_text", height=150, 
+                            placeholder="e.g., 'China announces retaliatory tariffs on U.S. agricultural products...'")
+    else:
+        text = st.text_area("📝 Enter your finance text here:", "", key="finance_text", height=150, 
+                            placeholder="e.g., 'Tesla stock soars 20% after announcing breakthrough in battery technology...'")
 
 col1, col2, col3 = st.columns([1,1,1])
 with col2:
@@ -558,32 +574,141 @@ if predict_button or demo_mode:
             sentiment_idx = np.argmax(probs)
             sentiment = sentiment_labels[sentiment_idx]
 
-            # Stock movement calculation
+            # More nuanced stock movement calculation
+            confidence = float(probs[sentiment_idx])
+            pos_prob = float(probs[0])
+            neg_prob = float(probs[2])
+            
+            # Calculate sentiment strength and volatility
+            sentiment_spread = abs(pos_prob - neg_prob)
+            sentiment_certainty = max(probs) - sorted(probs)[-2]  # Gap between top 2
+            
             movement = 0.0
             if sentiment == "Positive":
-                movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
+                # Scale movement based on confidence and sentiment strength
+                base_movement = confidence * sentiment_spread * 8
+                # Add boost if sentiment is very certain
+                certainty_boost = sentiment_certainty * 2
+                movement = min(7.5, round(base_movement + certainty_boost, 2))
             elif sentiment == "Negative":
-                movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
+                # Negative movements tend to be sharper
+                base_movement = confidence * sentiment_spread * 9
+                certainty_boost = sentiment_certainty * 2.5
+                movement = -min(8.5, round(base_movement + certainty_boost, 2))
+            else:
+                # Neutral with slight bias based on underlying sentiment
+                movement = round((pos_prob - neg_prob) * 2, 2)
+            
+            # Generate nuanced analysis text
+            def get_sentiment_analysis(sentiment, confidence, movement, probs):
+                pos_prob = float(probs[0])
+                neg_prob = float(probs[2])
+                neu_prob = float(probs[1])
+                
+                if sentiment == "Positive":
+                    if confidence > 0.85:
+                        strength = "strongly positive"
+                        impact = "significant bullish momentum"
+                    elif confidence > 0.70:
+                        strength = "moderately positive"
+                        impact = "cautious optimism"
+                    else:
+                        strength = "slightly positive"
+                        impact = "mild upward pressure"
+                    
+                    if neu_prob > 0.25:
+                        qualifier = f" though {neu_prob:.1%} neutral sentiment suggests some uncertainty"
+                    else:
+                        qualifier = " with strong conviction"
+                elif sentiment == "Negative":
+                    if confidence > 0.85:
+                        strength = "strongly negative"
+                        impact = "substantial bearish pressure"
+                    elif confidence > 0.70:
+                        strength = "moderately negative"
+                        impact = "notable investor concern"
+                    else:
+                        strength = "slightly negative"
+                        impact = "mild downward pressure"
+                    
+                    if neu_prob > 0.25:
+                        qualifier = f" though {neu_prob:.1%} neutral sentiment indicates mixed signals"
+                    else:
+                        qualifier = " with high conviction"
+                else:
+                    if abs(pos_prob - neg_prob) < 0.15:
+                        strength = "balanced neutral"
+                        impact = "minimal market impact expected"
+                        qualifier = " with equal positive and negative signals"
+                    elif pos_prob > neg_prob:
+                        strength = "neutral with positive lean"
+                        impact = "slight upward bias"
+                        qualifier = f" as positive sentiment edges out at {pos_prob:.1%}"
+                    else:
+                        strength = "neutral with negative lean"
+                        impact = "slight downward bias"
+                        qualifier = f" as negative sentiment dominates at {neg_prob:.1%}"
+                
+                return strength, impact, qualifier
             
             # Results display
             st.markdown('<div class="results-card">', unsafe_allow_html=True)
             
-            # Sentiment badges
-            st.markdown('<h2>🎯 Predicted Sentiment</h2>', unsafe_allow_html=True)
+            # Get nuanced analysis
+            strength, impact, qualifier = get_sentiment_analysis(sentiment, confidence, movement, probs)
+            
+            # Add tariff-specific analysis if in tariff mode
+            if analysis_mode == "Tariff Impact Analysis":
+                st.markdown('<h2>🌐 Tariff Impact on Investor Sentiment</h2>', unsafe_allow_html=True)
+                
+                # Calculate impact score
+                if sentiment == "Positive":
+                    impact_score = round(confidence * 10, 2)
+                    st.markdown(f'<div style="text-align: center; margin: 20px 0;"><span style="background: rgba(0,242,169,0.2); padding: 15px 30px; border-radius: 15px; border: 2px solid #00f2a9; display: inline-block;"><span style="font-size: 1.3em; font-weight: 700; color: #00f2a9;">↑ Optimism among investors</span><br><span style="font-size: 0.9em; color: #aaa; margin-top: 5px; display: block;">+{impact_score} sentiment points</span></span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="text-align: center; color: #aaa; font-size: 0.95em;">The tariff news suggests potential benefits for domestic producers or trade resolution, creating positive market sentiment{qualifier}.</p>', unsafe_allow_html=True)
+                elif sentiment == "Negative":
+                    impact_score = round(confidence * 10, 2)
+                    st.markdown(f'<div style="text-align: center; margin: 20px 0;"><span style="background: rgba(255,107,107,0.2); padding: 15px 30px; border-radius: 15px; border: 2px solid #ff6b6b; display: inline-block;"><span style="font-size: 1.3em; font-weight: 700; color: #ff6b6b;">↓ Concern among investors</span><br><span style="font-size: 0.9em; color: #aaa; margin-top: 5px; display: block;">-{impact_score} sentiment points</span></span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="text-align: center; color: #aaa; font-size: 0.95em;">The tariff developments indicate potential supply chain disruption, increased costs, or trade tensions, triggering investor caution{qualifier}.</p>', unsafe_allow_html=True)
+                else:
+                    impact_score = round((1 - confidence) * 5, 2)
+                    st.markdown(f'<div style="text-align: center; margin: 20px 0;"><span style="background: rgba(255,217,61,0.2); padding: 15px 30px; border-radius: 15px; border: 2px solid #ffd93d; display: inline-block;"><span style="font-size: 1.3em; font-weight: 700; color: #ffd93d;">~ Stable market reaction</span><br><span style="font-size: 0.9em; color: #aaa; margin-top: 5px; display: block;">±{impact_score} sentiment points</span></span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="text-align: center; color: #aaa; font-size: 0.95em;">The tariff news shows mixed signals with offsetting positive and negative factors{qualifier}.</p>', unsafe_allow_html=True)
+            else:
+                # Standard sentiment display
+                st.markdown('<h2>🎯 Predicted Sentiment</h2>', unsafe_allow_html=True)
             if sentiment == "Positive":
                 st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge positive-badge">📈 {sentiment}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<p style="text-align: center; color: #aaa; margin-top: 10px; font-size: 0.95em;">Market signals are <strong style="color: #00f2a9;">{strength}</strong> indicating {impact}{qualifier}.</p>', unsafe_allow_html=True)
             elif sentiment == "Negative":
                 st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge negative-badge">📉 {sentiment}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<p style="text-align: center; color: #aaa; margin-top: 10px; font-size: 0.95em;">Market signals are <strong style="color: #ff6b6b;">{strength}</strong> indicating {impact}{qualifier}.</p>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge neutral-badge">➖ {sentiment}</span></div>', unsafe_allow_html=True)
+                st.markdown(f'<p style="text-align: center; color: #aaa; margin-top: 10px; font-size: 0.95em;">Market signals are <strong style="color: #ffd93d;">{strength}</strong> indicating {impact}{qualifier}.</p>', unsafe_allow_html=True)
             
-            # Movement prediction
+            # Movement prediction with context
             st.markdown('<div class="stat-box">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size: 1em; color: #aaa; margin-bottom: 5px;">Predicted Stock Movement</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size: 1em; color: #aaa; margin-bottom: 5px;">Estimated Short-Term Price Movement</div>', unsafe_allow_html=True)
             if movement > 0:
                 st.markdown(f'<div class="stat-value">+{movement}%</div>', unsafe_allow_html=True)
+                if movement > 5:
+                    st.markdown('<div style="font-size: 0.85em; color: #00f2a9; margin-top: 5px;">Strong positive catalyst detected</div>', unsafe_allow_html=True)
+                elif movement > 2:
+                    st.markdown('<div style="font-size: 0.85em; color: #00f2a9; margin-top: 5px;">Moderate upward momentum</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div style="font-size: 0.85em; color: #00f2a9; margin-top: 5px;">Slight positive drift expected</div>', unsafe_allow_html=True)
+            elif movement < 0:
+                st.markdown(f'<div class="stat-value">{movement}%</div>', unsafe_allow_html=True)
+                if movement < -5:
+                    st.markdown('<div style="font-size: 0.85em; color: #ff6b6b; margin-top: 5px;">Strong negative catalyst detected</div>', unsafe_allow_html=True)
+                elif movement < -2:
+                    st.markdown('<div style="font-size: 0.85em; color: #ff6b6b; margin-top: 5px;">Moderate downward pressure</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div style="font-size: 0.85em; color: #ff6b6b; margin-top: 5px;">Slight negative drift expected</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="stat-value">{movement}%</div>', unsafe_allow_html=True)
+                st.markdown('<div style="font-size: 0.85em; color: #ffd93d; margin-top: 5px;">Minimal price action anticipated</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Probability bar chart
