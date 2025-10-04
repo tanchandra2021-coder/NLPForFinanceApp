@@ -50,6 +50,13 @@ except FileNotFoundError:
 # --- Custom CSS ---
 st.markdown("""
 <style>
+/* ⚙️ GLOBAL FUTURISTIC FONT ⚙️ (Applied to text input) */
+.stTextArea textarea, .stButton > button, .results-bubble {
+    /* Use a futuristic font stack for an elegant, impressive look */
+    font-family: 'Orbitron', 'Roboto Mono', monospace !important; 
+}
+
+
 /* Main Title Bubble (Green) */
 .title-bubble {
     background: #00e6ac;
@@ -64,18 +71,17 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* 🟢 Instruction Bubble (Sent Message Blue) 🟢 */
+/* 🟢 Instruction Bubble (Sent Message Blue/Right Tail) 🟢 */
 .input-bubble {
     position: relative; 
-    background: #0084ff; /* Classic iMessage Blue */
+    background: #0084ff; 
     color: #fff !important; 
-    font-family: "Helvetica Neue", sans-serif;
+    font-family: 'Orbitron', sans-serif; /* Apply futuristic font to instruction */
     font-size: 1.2em;
     line-height: 1.4;
-    /* Main body should be fully rounded */
     border-radius: 25px; 
     padding: 20px 25px;
-    margin: 30px auto 30px auto;
+    margin: 30px auto 40px auto; /* Increased margin for better tail visibility */
     max-width: 700px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
 }
@@ -83,20 +89,20 @@ st.markdown("""
     color: #fff !important;
 }
 
-/* Tail for Instruction Bubble (Bottom-Right, Smooth Curve) */
+/* Tail for Instruction Bubble (Bottom-Right, SMOOTH CURVE) */
 .input-bubble::after {
     content: '';
     position: absolute;
-    z-index: 1; /* Keep tail on top */
-    bottom: 0;
-    right: -7px; /* Position next to the bubble */
-    width: 18px;
+    z-index: 1; 
+    bottom: -15px; /* Position the tail below the bubble */
+    right: 5px; /* Position next to the bubble edge */
+    width: 20px;
     height: 20px;
-    background: #0084ff; /* Match bubble color */
-    border-bottom-left-radius: 15px; /* Creates the curve against the bubble */
-    border-radius: 0 25px 0 0; /* Creates the tear-drop shape */
-    transform: rotate(30deg); /* Tilt the tail */
-    box-shadow: 4px 4px 5px rgba(0,0,0,0.1); /* Subtle shadow on the tail */
+    background: #0084ff; 
+    /* The trick for the smooth curve */
+    border-bottom-left-radius: 20px;
+    transform: rotate(30deg); 
+    box-shadow: 4px 4px 5px rgba(0,0,0,0.1); 
 }
 
 
@@ -109,11 +115,9 @@ st.markdown("""
     margin-top: 30px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
-.results-bubble * {
-    color: #fff !important;
-}
 
-/* 💬 Text Area Input Bubble (Received Message Gray) 💬 */
+
+/* 💬 Text Area Input Bubble (Received Message Gray/Left Tail) 💬 */
 
 /* The entire container for the text area widget */
 .stTextArea > div {
@@ -137,40 +141,40 @@ st.markdown("""
     transition: all 0.3s ease;
 }
 
-/* Tail for Text Input Area (Bottom-Left, Smooth Curve) */
+/* Tail for Text Input Area (Bottom-Left, SMOOTH CURVE) */
 .stTextArea > div::after {
     content: '';
     position: absolute;
     z-index: 1;
-    bottom: 0;
-    left: -7px; /* Position next to the bubble */
-    width: 18px;
+    bottom: -15px; /* Position the tail below the bubble */
+    left: 5px; /* Position next to the bubble edge */
+    width: 20px;
     height: 20px;
-    background: #e5e5ea; /* Match textarea color */
-    border-bottom-right-radius: 15px; /* Creates the curve against the bubble */
-    border-radius: 25px 0 0 0; /* Creates the tear-drop shape */
-    transform: rotate(-30deg); /* Tilt the tail */
-    box-shadow: -4px 4px 5px rgba(0,0,0,0.1); /* Subtle shadow on the tail */
+    background: #e5e5ea; 
+    /* The trick for the smooth curve */
+    border-bottom-right-radius: 20px; 
+    transform: rotate(-30deg); /* Mirror the rotation for the left side */
+    box-shadow: -4px 4px 5px rgba(0,0,0,0.1); 
 }
 
-/* Fix for Streamlit's default margins/padding */
+/* Fix for Streamlit's inner padding issue that affects centering and tail positioning */
 div[data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:first-child {
     padding-top: 0 !important;
 }
 
 /* Button Styling */
 div.stButton > button {
-    background-color: #000;
-    color: #fff;
+    background-color: #00e6ac; /* Use the accent color for the button */
+    color: #000;
     border-radius: 12px;
     font-weight: bold;
     font-size: 1.1em;
     padding: 10px 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    box-shadow: 0 5px 15px rgba(0,230,172,0.6); /* Green shadow for button */
     transition: 0.3s;
 }
 div.stButton > button:hover {
-    background-color: #333;
+    background-color: #00cc99;
     transform: translateY(-2px);
 }
 </style>
@@ -179,11 +183,10 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# 📣 Instruction Bubble (Sent Message Blue with smooth tail)
-st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
+# 📣 Instruction Bubble (Sent Message Blue with smooth tail and down arrow emoji)
+st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below **(with a down arrow ⬇️)**. We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
 # Text Area Widget (Received Message Gray with smooth tail)
-# NOTE: The tail is applied to the parent div of the text area.
 text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
 # Prediction
@@ -229,7 +232,7 @@ with col2:
             st.markdown(
                 """
                 <hr style="border: 0.5px solid rgba(255,255,255,0.2); margin: 15px 0;">
-                <p style="font-size: 0.8em; color: #aaa;">
+                <p style="font-size: 0.8em; color: #aaa; font-family: sans-serif !important;">
                     *Disclaimer: This is a sentiment analysis prediction based on the FinBERT model and does not constitute financial advice. Stock movement prediction is for illustrative purposes only.*
                 </p>
                 """, unsafe_allow_html=True)
