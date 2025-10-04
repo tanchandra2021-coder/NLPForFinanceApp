@@ -51,116 +51,128 @@ st.markdown("""
 <style>
 /* Global Font */
 * {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
 }
 
-/* Main Title Bubble */
+/* Center everything */
+.block-container {
+    max-width: 800px !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+/* Main Title */
 .title-bubble {
     background: linear-gradient(135deg, #00f2a9 0%, #00d4a0 100%);
     color: #000 !important;
     text-align: center;
-    font-size: 2.5em;
+    font-size: 2.2em;
     font-weight: 700;
     border-radius: 25px;
     padding: 30px 40px;
-    margin: 40px auto 30px auto;
-    max-width: 850px;
-    box-shadow: 0 15px 50px rgba(0,242,169,0.4), 0 5px 15px rgba(0,0,0,0.3);
-    letter-spacing: -0.5px;
+    margin: 40px auto 40px auto;
+    box-shadow: 0 15px 50px rgba(0,242,169,0.4);
 }
 
-/* iMessage Blue Bubble (Sent Message) */
+/* Blue iMessage Bubble Container */
+.blue-bubble-container {
+    display: flex;
+    justify-content: flex-end;
+    margin: 30px 0 50px 80px;
+}
+
+/* Blue Bubble (Sent Message - Right aligned) */
 .input-bubble {
     position: relative;
     background: #0084ff;
     color: #fff !important;
-    font-size: 1.15em;
+    font-size: 1.1em;
     line-height: 1.5;
-    border-radius: 20px;
-    padding: 16px 20px;
-    margin: 25px auto 45px auto;
-    max-width: 680px;
-    box-shadow: 0 4px 12px rgba(0,132,255,0.3);
-    margin-left: auto;
-    margin-right: 50px;
+    border-radius: 18px;
+    padding: 14px 18px;
+    max-width: 85%;
+    box-shadow: 0 2px 10px rgba(0,132,255,0.3);
 }
 
-.input-bubble * {
-    color: #fff !important;
-}
-
-/* Proper iMessage tail for blue bubble (bottom right) */
-.input-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: -8px;
-    width: 20px;
-    height: 25px;
-    background: #0084ff;
-    border-bottom-left-radius: 16px 14px;
-    transform: translateY(0);
-}
-
+/* Blue bubble tail - proper iMessage style */
 .input-bubble::before {
     content: '';
     position: absolute;
+    right: -7px;
     bottom: 0;
+    width: 20px;
+    height: 20px;
+    background: #0084ff;
+    border-radius: 0 0 0 18px;
+}
+
+.input-bubble::after {
+    content: '';
+    position: absolute;
     right: -10px;
+    bottom: 0;
     width: 10px;
     height: 20px;
     background: transparent;
-    border-bottom-left-radius: 10px;
+    border-radius: 0 0 0 10px;
 }
 
-/* Text Area Container */
+/* Gray iMessage Bubble Container */
+.gray-bubble-container {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 80px 40px 0;
+}
+
+/* Text Area - Gray Bubble (Received Message - Left aligned) */
+.stTextArea {
+    width: 100%;
+}
+
 .stTextArea > div {
-    margin: 0 50px 40px 0;
-    max-width: 680px;
-    position: relative;
+    display: flex;
+    justify-content: flex-start;
 }
 
-/* iMessage Gray Bubble (Received Message) */
+.stTextArea > div > div {
+    position: relative;
+    max-width: 85%;
+}
+
 .stTextArea textarea {
     background: #e5e5ea !important;
     color: #000 !important;
     font-size: 1.1em !important;
     line-height: 1.5 !important;
-    border-radius: 20px !important;
+    border-radius: 18px !important;
     border: none !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-    padding: 16px 20px !important;
-    transition: all 0.2s ease;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1) !important;
+    padding: 14px 18px !important;
 }
 
-.stTextArea textarea:focus {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
-    outline: none !important;
-}
-
-/* Proper iMessage tail for gray bubble (bottom left) */
-.stTextArea > div::after {
+/* Gray bubble tail - proper iMessage style */
+.stTextArea > div > div::before {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: -8px;
+    left: -7px;
+    bottom: 6px;
     width: 20px;
-    height: 25px;
+    height: 20px;
     background: #e5e5ea;
-    border-bottom-right-radius: 16px 14px;
-    z-index: 0;
+    border-radius: 0 0 18px 0;
+    z-index: -1;
 }
 
-.stTextArea > div::before {
+.stTextArea > div > div::after {
     content: '';
     position: absolute;
-    bottom: 0;
     left: -10px;
+    bottom: 6px;
     width: 10px;
     height: 20px;
     background: transparent;
-    border-bottom-right-radius: 10px;
-    z-index: 1;
+    border-radius: 0 0 10px 0;
+    z-index: 0;
 }
 
 /* Results Bubble */
@@ -169,10 +181,9 @@ st.markdown("""
     backdrop-filter: blur(20px);
     color: #fff !important;
     border-radius: 25px;
-    padding: 30px 35px;
+    padding: 30px;
     margin: 30px auto;
-    max-width: 700px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 80px rgba(0,242,169,0.1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -183,26 +194,26 @@ st.markdown("""
 }
 
 /* Button */
+div.stButton {
+    display: flex;
+    justify-content: center;
+}
+
 div.stButton > button {
     background: linear-gradient(135deg, #00f2a9 0%, #00d4a0 100%);
     color: #000;
     border-radius: 20px;
     font-weight: 700;
     font-size: 1.15em;
-    padding: 14px 40px;
+    padding: 14px 50px;
     border: none;
     box-shadow: 0 6px 20px rgba(0,242,169,0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
 }
 
 div.stButton > button:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(0,242,169,0.6);
-}
-
-div.stButton > button:active {
-    transform: translateY(-1px);
 }
 
 /* Hide Streamlit branding */
@@ -210,7 +221,7 @@ div.stButton > button:active {
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-/* Smooth animations */
+/* Animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -225,11 +236,17 @@ header {visibility: hidden;}
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below ⬇️. We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
+st.markdown('''
+<div class="blue-bubble-container">
+    <div class="input-bubble">
+        💭 Paste your stock news, tweets, or finance text below ⬇️. We'll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!
+    </div>
+</div>
+''', unsafe_allow_html=True)
 
-text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
+text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, label_visibility="collapsed")
 
-col1, col2, col3 = st.columns([1,1,1])
+col1, col2, col3 = st.columns([1,2,1])
 with col2:
     if st.button("Predict 🚀"):
         if text.strip() != "":
@@ -268,7 +285,7 @@ with col2:
                 """
                 <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
                 <p style="font-size: 0.85em; color: #888; text-align: center;">
-                    <em>Disclaimer: This is a sentiment analysis prediction based on the FinBERT model and does not constitute financial advice. Stock movement prediction is for illustrative purposes only.</em>
+                    <em>Disclaimer: This is a sentiment analysis prediction based on the FinBERT model and does not constitute financial advice.</em>
                 </p>
                 """, unsafe_allow_html=True)
 
