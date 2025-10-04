@@ -72,10 +72,10 @@ st.markdown("""
     font-family: "Helvetica Neue", sans-serif;
     font-size: 1.2em;
     line-height: 1.4;
-    /* Pointed bottom-right */
-    border-radius: 25px 25px 5px 25px; 
+    /* Main body should be fully rounded */
+    border-radius: 25px; 
     padding: 20px 25px;
-    margin: 30px auto 30px auto; /* Increased margin for tail space */
+    margin: 30px auto 30px auto;
     max-width: 700px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
 }
@@ -83,19 +83,20 @@ st.markdown("""
     color: #fff !important;
 }
 
-/* Tail for Instruction Bubble (Bottom-Right) */
+/* Tail for Instruction Bubble (Bottom-Right, Smooth Curve) */
 .input-bubble::after {
-    content: "";
+    content: '';
     position: absolute;
-    bottom: -1px; /* Start at the bottom edge */
-    right: -10px; /* Position the start of the tail */
-    width: 20px;
+    z-index: 1; /* Keep tail on top */
+    bottom: 0;
+    right: -7px; /* Position next to the bubble */
+    width: 18px;
     height: 20px;
     background: #0084ff; /* Match bubble color */
-    /* Create a rounded corner effect for the tail */
-    border-top-left-radius: 25px;
-    transform: rotate(45deg); /* Rotate to point it downwards/right */
-    z-index: 1;
+    border-bottom-left-radius: 15px; /* Creates the curve against the bubble */
+    border-radius: 0 25px 0 0; /* Creates the tear-drop shape */
+    transform: rotate(30deg); /* Tilt the tail */
+    box-shadow: 4px 4px 5px rgba(0,0,0,0.1); /* Subtle shadow on the tail */
 }
 
 
@@ -128,30 +129,31 @@ st.markdown("""
     font-size: 1.1em !important;
     line-height: 1.5;
     
-    /* Pointed bottom-left */
-    border-radius: 25px 25px 5px 25px !important; 
+    /* Main body should be fully rounded */
+    border-radius: 25px !important; 
     border: none !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
     padding: 15px 20px !important; 
     transition: all 0.3s ease;
 }
 
-/* Tail for Text Input Area (Bottom-Left) */
+/* Tail for Text Input Area (Bottom-Left, Smooth Curve) */
 .stTextArea > div::after {
-    content: "";
+    content: '';
     position: absolute;
-    bottom: -1px; /* Start at the bottom edge */
-    left: -10px; /* Position the start of the tail */
-    width: 20px;
+    z-index: 1;
+    bottom: 0;
+    left: -7px; /* Position next to the bubble */
+    width: 18px;
     height: 20px;
     background: #e5e5ea; /* Match textarea color */
-    /* Create a rounded corner effect for the tail */
-    border-top-right-radius: 25px;
-    transform: rotate(-45deg); /* Rotate to point it downwards/left */
-    z-index: 1;
+    border-bottom-right-radius: 15px; /* Creates the curve against the bubble */
+    border-radius: 25px 0 0 0; /* Creates the tear-drop shape */
+    transform: rotate(-30deg); /* Tilt the tail */
+    box-shadow: -4px 4px 5px rgba(0,0,0,0.1); /* Subtle shadow on the tail */
 }
 
-/* Fix Streamlit's inner padding issue that affects centering and tail positioning */
+/* Fix for Streamlit's default margins/padding */
 div[data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:first-child {
     padding-top: 0 !important;
 }
@@ -177,10 +179,10 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# 📣 Instruction Bubble (Sent Message Blue with tail)
+# 📣 Instruction Bubble (Sent Message Blue with smooth tail)
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
-# Text Area Widget (Received Message Gray with tail)
+# Text Area Widget (Received Message Gray with smooth tail)
 # NOTE: The tail is applied to the parent div of the text area.
 text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
