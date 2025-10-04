@@ -354,146 +354,146 @@ header {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 # --- Main content ---
-    st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
+st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="instruction-box">💭 Paste your stock news, tweets, or finance text below. We\'ll analyze sentiment, predict stock movement, and visualize the results with beautiful charts!</div>', unsafe_allow_html=True)
+
+# Demo mode toggle
+demo_mode = st.checkbox("🎬 Show Demo Example", value=False)
+
+if demo_mode:
+    st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "Apple iPhone sales increased 50%"</div>', unsafe_allow_html=True)
+    text = "Apple Inc. announces record-breaking Q4 earnings with revenue exceeding $120 billion, driven by strong iPhone 15 sales and robust services growth. The company exceeded analyst expectations by 15%, with CEO Tim Cook highlighting unprecedented demand in emerging markets. Stock surged 8% in after-hours trading as investors celebrated the stellar performance."
+    st.text_area("📝 Demo Input - Try your own text!", text, key="finance_text", height=150)
+else:
+    text = st.text_area("📝 Enter your finance text here:", "", key="finance_text", height=150, 
+                        placeholder="e.g., 'Tesla stock soars 20% after announcing breakthrough in battery technology...'")
+
+col1, col2, col3 = st.columns([1,1,1])
+with col2:
+    predict_button = st.button("🚀 Predict Sentiment", use_container_width=True)
     
-    st.markdown('<div class="instruction-box">💭 Paste your stock news, tweets, or finance text below. We\'ll analyze sentiment, predict stock movement, and visualize the results with beautiful charts!</div>', unsafe_allow_html=True)
-    
-    # Demo mode toggle
-    demo_mode = st.checkbox("🎬 Show Demo Example", value=False)
-    
-    if demo_mode:
-        st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "Apple iPhone sales increased 50%"</div>', unsafe_allow_html=True)
-        text = "Apple Inc. announces record-breaking Q4 earnings with revenue exceeding $120 billion, driven by strong iPhone 15 sales and robust services growth. The company exceeded analyst expectations by 15%, with CEO Tim Cook highlighting unprecedented demand in emerging markets. Stock surged 8% in after-hours trading as investors celebrated the stellar performance."
-        st.text_area("📝 Demo Input - Try your own text!", text, key="finance_text", height=150)
-    else:
-        text = st.text_area("📝 Enter your finance text here:", "", key="finance_text", height=150, 
-                            placeholder="e.g., 'Tesla stock soars 20% after announcing breakthrough in battery technology...'")
-    
-    col1, col2, col3 = st.columns([1,1,1])
-    with col2:
-        predict_button = st.button("🚀 Predict Sentiment", use_container_width=True)
-    
-    if predict_button or demo_mode:
-        if text.strip() != "":
-            with st.spinner('🔮 Analyzing sentiment...'):
-                # Model prediction
-                inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-                with torch.no_grad():
-                    outputs = model(**inputs)
-                    probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
-    
-                sentiment_labels = ["Positive", "Neutral", "Negative"]
-                sentiment_idx = np.argmax(probs)
-                sentiment = sentiment_labels[sentiment_idx]
-    
-                # Stock movement calculation
-                movement = 0.0
-                if sentiment == "Positive":
-                    movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
-                elif sentiment == "Negative":
-                    movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
-                
-                # Results display
-                st.markdown('<div class="results-card">', unsafe_allow_html=True)
-                
-                # Sentiment badges
-                st.markdown('<h2>🎯 Predicted Sentiment</h2>', unsafe_allow_html=True)
-                if sentiment == "Positive":
-                    st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge positive-badge">📈 {sentiment}</span></div>', unsafe_allow_html=True)
-                elif sentiment == "Negative":
-                    st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge negative-badge">📉 {sentiment}</span></div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge neutral-badge">➖ {sentiment}</span></div>', unsafe_allow_html=True)
-                
-                # Movement prediction
-                st.markdown('<div class="stat-box">', unsafe_allow_html=True)
-                st.markdown('<div style="font-size: 1em; color: #aaa; margin-bottom: 5px;">Predicted Stock Movement</div>', unsafe_allow_html=True)
-                if movement > 0:
-                    st.markdown(f'<div class="stat-value">+{movement}%</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="stat-value">{movement}%</div>', unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Probability bar chart
-                st.markdown('<h3>📊 Sentiment Probabilities</h3>', unsafe_allow_html=True)
-                
-                fig = go.Figure(data=[
-                    go.Bar(
-                        x=sentiment_labels,
-                        y=probs,
-                        marker=dict(
-                            color=['#00f2a9', '#ffd93d', '#ff6b6b'],
-                            line=dict(color='rgba(255,255,255,0.3)', width=2)
-                        ),
-                        text=[f'{p:.2%}' for p in probs],
-                        textposition='outside',
-                        textfont=dict(size=14, color='white', family='Inter')
-                    )
-                ])
-                
-                fig.update_layout(
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color='white'),
-                    height=400,
-                    margin=dict(t=20, b=20, l=20, r=20),
-                    xaxis_title='Sentiment',
-                    yaxis_title='Probability'
+if predict_button or demo_mode:
+    if text.strip() != "":
+        with st.spinner('🔮 Analyzing sentiment...'):
+            # Model prediction
+            inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+            with torch.no_grad():
+                outputs = model(**inputs)
+                probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+
+            sentiment_labels = ["Positive", "Neutral", "Negative"]
+            sentiment_idx = np.argmax(probs)
+            sentiment = sentiment_labels[sentiment_idx]
+
+            # Stock movement calculation
+            movement = 0.0
+            if sentiment == "Positive":
+                movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
+            elif sentiment == "Negative":
+                movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
+            
+            # Results display
+            st.markdown('<div class="results-card">', unsafe_allow_html=True)
+            
+            # Sentiment badges
+            st.markdown('<h2>🎯 Predicted Sentiment</h2>', unsafe_allow_html=True)
+            if sentiment == "Positive":
+                st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge positive-badge">📈 {sentiment}</span></div>', unsafe_allow_html=True)
+            elif sentiment == "Negative":
+                st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge negative-badge">📉 {sentiment}</span></div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div style="text-align: center;"><span class="sentiment-badge neutral-badge">➖ {sentiment}</span></div>', unsafe_allow_html=True)
+            
+            # Movement prediction
+            st.markdown('<div class="stat-box">', unsafe_allow_html=True)
+            st.markdown('<div style="font-size: 1em; color: #aaa; margin-bottom: 5px;">Predicted Stock Movement</div>', unsafe_allow_html=True)
+            if movement > 0:
+                st.markdown(f'<div class="stat-value">+{movement}%</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="stat-value">{movement}%</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Probability bar chart
+            st.markdown('<h3>📊 Sentiment Probabilities</h3>', unsafe_allow_html=True)
+            
+            fig = go.Figure(data=[
+                go.Bar(
+                    x=sentiment_labels,
+                    y=probs,
+                    marker=dict(
+                        color=['#00f2a9', '#ffd93d', '#ff6b6b'],
+                        line=dict(color='rgba(255,255,255,0.3)', width=2)
+                    ),
+                    text=[f'{p:.2%}' for p in probs],
+                    textposition='outside',
+                    textfont=dict(size=14, color='white', family='Inter')
                 )
-                
-                fig.update_xaxes(gridcolor='rgba(255,255,255,0.1)', title_font=dict(size=14, color='#00f2a9'))
-                fig.update_yaxes(gridcolor='rgba(255,255,255,0.1)', tickformat='.0%', title_font=dict(size=14, color='#00f2a9'))
-                
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Gauge chart for confidence
-                confidence = float(probs[sentiment_idx])
-                
-                fig2 = go.Figure(go.Indicator(
-                    mode="gauge+number+delta",
-                    value=confidence * 100,
-                    domain={'x': [0, 1], 'y': [0, 1]},
-                    title={'text': "Confidence Level", 'font': {'size': 20, 'color': '#00f2a9'}},
-                    number={'suffix': "%", 'font': {'size': 40, 'color': 'white'}},
-                    gauge={
-                        'axis': {'range': [None, 100], 'tickwidth': 2, 'tickcolor': "white"},
-                        'bar': {'color': "#00f2a9"},
-                        'bgcolor': "rgba(255,255,255,0.1)",
-                        'borderwidth': 2,
-                        'bordercolor': "rgba(255,255,255,0.3)",
-                        'steps': [
-                            {'range': [0, 50], 'color': 'rgba(255,107,107,0.3)'},
-                            {'range': [50, 75], 'color': 'rgba(255,217,61,0.3)'},
-                            {'range': [75, 100], 'color': 'rgba(0,242,169,0.3)'}
-                        ],
-                        'threshold': {
-                            'line': {'color': "white", 'width': 4},
-                            'thickness': 0.75,
-                            'value': 90
-                        }
+            ])
+            
+            fig.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='white'),
+                height=400,
+                margin=dict(t=20, b=20, l=20, r=20),
+                xaxis_title='Sentiment',
+                yaxis_title='Probability'
+            )
+            
+            fig.update_xaxes(gridcolor='rgba(255,255,255,0.1)', title_font=dict(size=14, color='#00f2a9'))
+            fig.update_yaxes(gridcolor='rgba(255,255,255,0.1)', tickformat='.0%', title_font=dict(size=14, color='#00f2a9'))
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Gauge chart for confidence
+            confidence = float(probs[sentiment_idx])
+            
+            fig2 = go.Figure(go.Indicator(
+                mode="gauge+number+delta",
+                value=confidence * 100,
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Confidence Level", 'font': {'size': 20, 'color': '#00f2a9'}},
+                number={'suffix': "%", 'font': {'size': 40, 'color': 'white'}},
+                gauge={
+                    'axis': {'range': [None, 100], 'tickwidth': 2, 'tickcolor': "white"},
+                    'bar': {'color': "#00f2a9"},
+                    'bgcolor': "rgba(255,255,255,0.1)",
+                    'borderwidth': 2,
+                    'bordercolor': "rgba(255,255,255,0.3)",
+                    'steps': [
+                        {'range': [0, 50], 'color': 'rgba(255,107,107,0.3)'},
+                        {'range': [50, 75], 'color': 'rgba(255,217,61,0.3)'},
+                        {'range': [75, 100], 'color': 'rgba(0,242,169,0.3)'}
+                    ],
+                    'threshold': {
+                        'line': {'color': "white", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 90
                     }
-                ))
-                
-                fig2.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font={'color': "white", 'family': "Inter"},
-                    height=300,
-                    margin=dict(t=50, b=20, l=20, r=20)
-                )
-                
-                st.plotly_chart(fig2, use_container_width=True)
-                
-                # Disclaimer
-                st.markdown(
-                    """
-                    <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 30px 0 20px 0;">
-                    <p style="font-size: 0.85em; color: #666; text-align: center; line-height: 1.5;">
-                        <em>⚠️ Disclaimer: This sentiment analysis is powered by FinBERT AI and is for educational purposes only. 
-                        Not financial advice. Always conduct your own research before making investment decisions.</em>
-                    </p>
-                    """, unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.warning("⚠️ Please enter some text to analyze!")
+                }
+            ))
+            
+            fig2.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font={'color': "white", 'family': "Inter"},
+                height=300,
+                margin=dict(t=50, b=20, l=20, r=20)
+            )
+            
+            st.plotly_chart(fig2, use_container_width=True)
+            
+            # Disclaimer
+            st.markdown(
+                """
+                <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 30px 0 20px 0;">
+                <p style="font-size: 0.85em; color: #666; text-align: center; line-height: 1.5;">
+                    <em>⚠️ Disclaimer: This sentiment analysis is powered by FinBERT AI and is for educational purposes only. 
+                    Not financial advice. Always conduct your own research before making investment decisions.</em>
+                </p>
+                """, unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ Please enter some text to analyze!")
