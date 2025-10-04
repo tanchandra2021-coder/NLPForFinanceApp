@@ -353,37 +353,7 @@ header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar content ---
-with st.sidebar:
-    st.markdown('<div class="sidebar-card">', unsafe_allow_html=True)
-    st.markdown('<h4><span class="feature-icon">🤖</span> Powered by AI</h4>', unsafe_allow_html=True)
-    st.markdown('<p>Using FinBERT, a state-of-the-art language model specifically trained on financial text to understand market sentiment.</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="sidebar-card">', unsafe_allow_html=True)
-    st.markdown('<h4><span class="feature-icon">⚡</span> Real-time Analysis</h4>', unsafe_allow_html=True)
-    st.markdown('<p>Get instant sentiment predictions on any financial news, tweets, or market updates in seconds.</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="sidebar-card">', unsafe_allow_html=True)
-    st.markdown('<h4><span class="feature-icon">📊</span> Visual Insights</h4>', unsafe_allow_html=True)
-    st.markdown('<p>Beautiful charts and gauges help you understand sentiment probabilities and confidence levels at a glance.</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="stat-counter">', unsafe_allow_html=True)
-    st.markdown('<h3>99.2%</h3>', unsafe_allow_html=True)
-    st.markdown('<p>Model Accuracy</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="stat-counter">', unsafe_allow_html=True)
-    st.markdown('<h3>&lt;1s</h3>', unsafe_allow_html=True)
-    st.markdown('<p>Analysis Time</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # --- Main content ---
-col_left, col_main, col_right = st.columns([1, 3, 1])
-
-with col_main:
     st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
     
     st.markdown('<div class="instruction-box">💭 Paste your stock news, tweets, or finance text below. We\'ll analyze sentiment, predict stock movement, and visualize the results with beautiful charts!</div>', unsafe_allow_html=True)
@@ -392,9 +362,9 @@ with col_main:
     demo_mode = st.checkbox("🎬 Show Demo Example", value=False)
     
     if demo_mode:
-        st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE</div>', unsafe_allow_html=True)
+        st.markdown('<div class="demo-tag">🌟 DEMO MODE ACTIVE - Example: "Apple iPhone sales increased 50%"</div>', unsafe_allow_html=True)
         text = "Apple Inc. announces record-breaking Q4 earnings with revenue exceeding $120 billion, driven by strong iPhone 15 sales and robust services growth. The company exceeded analyst expectations by 15%, with CEO Tim Cook highlighting unprecedented demand in emerging markets. Stock surged 8% in after-hours trading as investors celebrated the stellar performance."
-        st.text_area("📝 Enter your finance text here:", text, key="finance_text", height=150)
+        st.text_area("📝 Demo Input - Try your own text!", text, key="finance_text", height=150)
     else:
         text = st.text_area("📝 Enter your finance text here:", "", key="finance_text", height=150, 
                             placeholder="e.g., 'Tesla stock soars 20% after announcing breakthrough in battery technology...'")
@@ -527,10 +497,3 @@ with col_main:
                 st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.warning("⚠️ Please enter some text to analyze!")
-
-# Right sidebar with additional info
-with col_right:
-    st.markdown('<div class="sidebar-card">', unsafe_allow_html=True)
-    st.markdown('<h4>💡 Tips</h4>', unsafe_allow_html=True)
-    st.markdown('<p style="font-size: 0.85em;">• Use complete sentences<br>• Include company names<br>• Add context for better results</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
