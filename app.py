@@ -42,7 +42,7 @@ def set_bg_local(image_file):
 
 set_bg_local("stock_app.avif")
 
-# --- Custom CSS for bubbles and button ---
+# --- Custom CSS ---
 st.markdown("""
 <style>
 .title-bubble {
@@ -58,24 +58,43 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
+/* Thought bubble styling */
 .thought-bubble {
     background: rgba(255,255,255,0.95);
-    color: #222 !important;
-    border-radius: 30px;
-    padding: 25px 30px;
+    border-radius: 50px;
+    padding: 35px 40px;
     margin: 20px auto;
     max-width: 700px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
     position: relative;
+    font-family: "Helvetica Neue", sans-serif;
 }
-.thought-bubble::after {
+
+.thought-bubble::before, .thought-bubble::after {
     content: "";
     position: absolute;
-    bottom: -25px;
-    left: 60px;
-    border-width: 25px 25px 0;
-    border-style: solid;
-    border-color: rgba(255,255,255,0.95) transparent transparent transparent;
+    background: rgba(255,255,255,0.95);
+    border-radius: 50%;
+}
+.thought-bubble::before {
+    width: 30px;
+    height: 30px;
+    bottom: -40px;
+    left: 50px;
+}
+.thought-bubble::after {
+    width: 18px;
+    height: 18px;
+    bottom: -65px;
+    left: 70px;
+}
+
+.bubble-label {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    text-align: left;
 }
 
 textarea {
@@ -119,10 +138,13 @@ div.stButton > button:hover {
 # --- App Layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Input thought bubble
-st.markdown('<div class="thought-bubble">', unsafe_allow_html=True)
-text = st.text_area("💭 Paste your stock news, tweets, or finance text here:", "")
-st.markdown('</div>', unsafe_allow_html=True)
+# Input thought bubble with label inside
+st.markdown("""
+<div class="thought-bubble">
+  <div class="bubble-label">💭 Paste the most recent stock news, tweets, or finance text here:</div>
+</div>
+""", unsafe_allow_html=True)
+text = st.text_area("", "", key="finance_text")
 
 # Prediction button
 if st.button("Predict 🚀"):
@@ -157,4 +179,5 @@ if st.button("Predict 🚀"):
         st.write(f"➖ **Sentiment:** {sentiment}")
         st.write(f"➖ **Predicted Movement:** {movement}%")
     st.markdown('</div>', unsafe_allow_html=True)
+
 
