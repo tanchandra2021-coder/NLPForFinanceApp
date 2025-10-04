@@ -64,17 +64,18 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* 🟢 Aesthetic Instruction Bubble (Sent Message Blue) 🟢 */
+/* 🟢 Instruction Bubble (Sent Message Blue) 🟢 */
 .input-bubble {
-    position: relative; /* Needed for the ::after pseudo-element */
-    background: #0084ff; 
+    position: relative; 
+    background: #0084ff; /* Classic iMessage Blue */
     color: #fff !important; 
     font-family: "Helvetica Neue", sans-serif;
     font-size: 1.2em;
     line-height: 1.4;
+    /* Pointed bottom-right */
     border-radius: 25px 25px 5px 25px; 
     padding: 20px 25px;
-    margin: 30px auto 20px auto;
+    margin: 30px auto 30px auto; /* Increased margin for tail space */
     max-width: 700px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
 }
@@ -82,20 +83,19 @@ st.markdown("""
     color: #fff !important;
 }
 
-/* Add the tail for the Instruction Bubble (Coming from the bottom-right) */
+/* Tail for Instruction Bubble (Bottom-Right) */
 .input-bubble::after {
     content: "";
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border: 15px solid transparent;
-    border-top-color: #0084ff; /* Match bubble color */
-    border-bottom: 0;
-    border-right: 0;
-    margin-right: -5px; /* Adjust horizontal position */
-    margin-bottom: -5px; /* Adjust vertical position */
+    bottom: -1px; /* Start at the bottom edge */
+    right: -10px; /* Position the start of the tail */
+    width: 20px;
+    height: 20px;
+    background: #0084ff; /* Match bubble color */
+    /* Create a rounded corner effect for the tail */
+    border-top-left-radius: 25px;
+    transform: rotate(45deg); /* Rotate to point it downwards/right */
+    z-index: 1;
 }
 
 
@@ -116,9 +116,9 @@ st.markdown("""
 
 /* The entire container for the text area widget */
 .stTextArea > div {
-    margin: 0 auto 30px auto; /* Add margin to bottom for tail */
+    margin: 0 auto 30px auto; 
     max-width: 700px; 
-    position: relative; /* Needed for the ::after pseudo-element */
+    position: relative; 
 }
 
 /* The actual text area element */
@@ -128,36 +128,33 @@ st.markdown("""
     font-size: 1.1em !important;
     line-height: 1.5;
     
-    /* Speech Bubble Shape */
-    border-radius: 25px 25px 25px 5px !important; /* Pointed bottom-left */
+    /* Pointed bottom-left */
+    border-radius: 25px 25px 5px 25px !important; 
     border: none !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
     padding: 15px 20px !important; 
     transition: all 0.3s ease;
 }
 
-/* Add the tail for the Text Input Area (Coming from the bottom-left) */
+/* Tail for Text Input Area (Bottom-Left) */
 .stTextArea > div::after {
     content: "";
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    border: 15px solid transparent;
-    border-top-color: #e5e5ea; /* Match textarea color */
-    border-bottom: 0;
-    border-left: 0;
-    margin-left: 20px; /* Position the tail a bit inside */
-    margin-bottom: -15px; /* Move the tail down below the box */
-    z-index: -1; /* Keep it behind the input box border */
+    bottom: -1px; /* Start at the bottom edge */
+    left: -10px; /* Position the start of the tail */
+    width: 20px;
+    height: 20px;
+    background: #e5e5ea; /* Match textarea color */
+    /* Create a rounded corner effect for the tail */
+    border-top-right-radius: 25px;
+    transform: rotate(-45deg); /* Rotate to point it downwards/left */
+    z-index: 1;
 }
 
-/* Fix focus border */
-.stTextArea textarea:focus {
-    box-shadow: 0 0 0 3px #00e6ac, 0 4px 15px rgba(0, 0, 0, 0.2) !important; 
+/* Fix Streamlit's inner padding issue that affects centering and tail positioning */
+div[data-testid="stVerticalBlock"] > div:first-child > div:nth-child(2) > div:first-child {
+    padding-top: 0 !important;
 }
-
 
 /* Button Styling */
 div.stButton > button {
@@ -184,6 +181,7 @@ st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movem
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 
 # Text Area Widget (Received Message Gray with tail)
+# NOTE: The tail is applied to the parent div of the text area.
 text = st.text_area("Enter your finance text here:", "", key="finance_text", height=150, help="e.g., 'Apple Inc. stock rises 5% after record-breaking Q4 iPhone sales.'", label_visibility="collapsed")
 
 # Prediction
