@@ -1,4 +1,4 @@
- import streamlit as st
+import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import numpy as np
