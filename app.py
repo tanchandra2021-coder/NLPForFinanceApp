@@ -1,3 +1,48 @@
+import streamlit as st
+from transformers import BertTokenizer, BertForSequenceClassification
+import torch
+import numpy as np
+import base64
+
+# --- Page config ---
+st.set_page_config(page_title="Finance News Sentiment", layout="wide")
+
+# --- Load FinBERT model ---
+@st.cache_resource
+def load_model():
+    tokenizer = BertTokenizer.from_pretrained("ProsusAI/finbert")
+    model = BertForSequenceClassification.from_pretrained("ProsusAI/finbert")
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+# --- Set background image ---
+def set_bg_local(image_file):
+    with open(image_file, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    
+    st.markdown(f"""
+    <style>
+    [data-testid="stAppViewContainer"] {{
+        background-image: url("data:image/avif;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    [data-testid="stAppViewContainer"]::before {{
+        content: "";
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.2);
+        z-index: -1;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+set_bg_local("stock_app.avif")
+
 # --- Custom CSS ---
 st.markdown("""
 <style>
@@ -14,7 +59,6 @@ st.markdown("""
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* Input text bubble styling */
 .input-bubble {
     background: rgba(255,255,255,0.95);
     border-radius: 50px;
@@ -27,10 +71,9 @@ st.markdown("""
     font-size: 1.2em;
 }
 
-/* Prediction results bubble */
 .results-bubble {
     background: rgba(0,0,0,0.8);
-    color: #fff !important;  /* Make text white */
+    color: #fff !important;
     border-radius: 30px;
     padding: 25px;
     margin-top: 30px;
@@ -65,45 +108,47 @@ div.stButton > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# --- App Layout ---
+# --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Input bubble with your custom text
+# Input bubble with custom text
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 text = st.text_area("", "", key="finance_text")
 
-# Prediction button
+# Prediction
 if st.button("Predict 🚀"):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+    if text.strip() != "":
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+        with torch.no_grad():
+            outputs = model(**inputs)
+            probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
 
-    sentiment_labels = ["Positive", "Neutral", "Negative"]
-    sentiment_idx = np.argmax(probs)
-    sentiment = sentiment_labels[sentiment_idx]
+        sentiment_labels = ["Positive", "Neutral", "Negative"]
+        sentiment_idx = np.argmax(probs)
+        sentiment = sentiment_labels[sentiment_idx]
 
-    movement = 0.0
-    if sentiment == "Positive":
-        movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
-    elif sentiment == "Negative":
-        movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
+        movement = 0.0
+        if sentiment == "Positive":
+            movement = min(10, round(float(probs[sentiment_idx]) * 10, 2))
+        elif sentiment == "Negative":
+            movement = -min(10, round(float(probs[sentiment_idx]) * 10, 2))
 
-    st.markdown('<div class="results-bubble">', unsafe_allow_html=True)
-    st.subheader("📊 Sentiment Probabilities")
-    for label, p in zip(sentiment_labels, probs):
-        st.write(f"**{label}:** {p:.4f}")
+        st.markdown('<div class="results-bubble">', unsafe_allow_html=True)
+        st.subheader("📊 Sentiment Probabilities")
+        for label, p in zip(sentiment_labels, probs):
+            st.write(f"**{label}:** {p:.4f}")
 
-    st.subheader("🧠 Predicted Sentiment & Stock Movement")
-    if sentiment == "Positive":
-        st.write(f"📈 **Sentiment:** {sentiment}")
-        st.write(f"📈 **Predicted Movement:** +{movement}%")
-    elif sentiment == "Negative":
-        st.write(f"📉 **Sentiment:** {sentiment}")
-        st.write(f"📉 **Predicted Movement:** {movement}%")
+        st.subheader("🧠 Predicted Sentiment & Stock Movement")
+        if sentiment == "Positive":
+            st.write(f"📈 **Sentiment:** {sentiment}")
+            st.write(f"📈 **Predicted Movement:** +{movement}%")
+        elif sentiment == "Negative":
+            st.write(f"📉 **Sentiment:** {sentiment}")
+            st.write(f"📉 **Predicted Movement:** {movement}%")
+        else:
+            st.write(f"➖ **Sentiment:** {sentiment}")
+            st.write(f"➖ **Predicted Movement:** {movement}%")
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.write(f"➖ **Sentiment:** {sentiment}")
-        st.write(f"➖ **Predicted Movement:** {movement}%")
-    st.markdown('</div>', unsafe_allow_html=True)
-
+        st.warning("Please enter some text to predict!")
 
