@@ -347,21 +347,15 @@ if predict_button or demo_mode:
             fig.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white', family='Inter'),
+                font=dict(color='white'),
                 height=400,
                 margin=dict(t=20, b=20, l=20, r=20),
                 xaxis_title='Sentiment',
-                yaxis_title='Probability',
-                xaxis=dict(
-                    gridcolor='rgba(255,255,255,0.1)',
-                    titlefont=dict(size=14, color='#00f2a9')
-                ),
-                yaxis=dict(
-                    gridcolor='rgba(255,255,255,0.1)',
-                    tickformat='.0%',
-                    titlefont=dict(size=14, color='#00f2a9')
-                )
+                yaxis_title='Probability'
             )
+            
+            fig.update_xaxes(gridcolor='rgba(255,255,255,0.1)', title_font=dict(size=14, color='#00f2a9'))
+            fig.update_yaxes(gridcolor='rgba(255,255,255,0.1)', tickformat='.0%', title_font=dict(size=14, color='#00f2a9'))
             
             st.plotly_chart(fig, use_container_width=True)
             
