@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import numpy as np
 import base64
@@ -10,8 +10,8 @@ st.set_page_config(page_title="Finance News Sentiment", layout="wide")
 # --- Load FinBERT model ---
 @st.cache_resource
 def load_model():
-    tokenizer = BertTokenizer.from_pretrained("ProsusAI/finbert")
-    model = BertForSequenceClassification.from_pretrained("ProsusAI/finbert")
+    tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
+    model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert")
     return tokenizer, model
 
 tokenizer, model = load_model()
@@ -111,7 +111,7 @@ div.stButton > button:hover {
 # --- App layout ---
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
-# Input bubble with custom text
+# Input bubble
 st.markdown('<div class="input-bubble">💭 Paste your stock news, tweets, or finance text below (with a down arrow). We\'ll predict the impact this will have on the stock, generate a chart, and predict investor sentiment!</div>', unsafe_allow_html=True)
 text = st.text_area("", "", key="finance_text")
 
