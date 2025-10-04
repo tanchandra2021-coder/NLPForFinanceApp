@@ -334,26 +334,166 @@ header {visibility: hidden;}
     50% { opacity: 1; }
 }
 
-/* Floating particles effect */
-.particle {
+/* Floating finance graphics */
+.finance-graphic {
     position: fixed;
-    width: 4px;
-    height: 4px;
-    background: #00f2a9;
-    border-radius: 50%;
+    font-size: 3em;
+    opacity: 0.15;
     pointer-events: none;
-    opacity: 0.6;
-    animation: float 15s ease-in-out infinite;
+    z-index: 0;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    50% { transform: translateY(-100px) translateX(50px); }
+.graphic-1 {
+    top: 10%;
+    left: 5%;
+    animation: float1 8s ease-in-out infinite;
+}
+
+.graphic-2 {
+    top: 20%;
+    right: 5%;
+    animation: float2 10s ease-in-out infinite;
+}
+
+.graphic-3 {
+    bottom: 15%;
+    left: 8%;
+    animation: float3 12s ease-in-out infinite;
+}
+
+.graphic-4 {
+    bottom: 25%;
+    right: 8%;
+    animation: float4 9s ease-in-out infinite;
+}
+
+.graphic-5 {
+    top: 50%;
+    left: 3%;
+    animation: rotate1 15s linear infinite;
+}
+
+.graphic-6 {
+    top: 60%;
+    right: 3%;
+    animation: rotate2 20s linear infinite;
+}
+
+@keyframes float1 {
+    0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+    25% { transform: translateY(-20px) translateX(10px) rotate(5deg); }
+    50% { transform: translateY(-10px) translateX(20px) rotate(-5deg); }
+    75% { transform: translateY(10px) translateX(10px) rotate(3deg); }
+}
+
+@keyframes float2 {
+    0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+    33% { transform: translateY(15px) translateX(-15px) scale(1.1); }
+    66% { transform: translateY(-15px) translateX(-10px) scale(0.9); }
+}
+
+@keyframes float3 {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-25px) rotate(10deg); }
+}
+
+@keyframes float4 {
+    0%, 100% { transform: translateX(0px) translateY(0px); }
+    33% { transform: translateX(-20px) translateY(10px); }
+    66% { transform: translateX(10px) translateY(-15px); }
+}
+
+@keyframes rotate1 {
+    from { transform: rotate(0deg); opacity: 0.1; }
+    50% { opacity: 0.2; }
+    to { transform: rotate(360deg); opacity: 0.1; }
+}
+
+@keyframes rotate2 {
+    from { transform: rotate(360deg); opacity: 0.15; }
+    50% { opacity: 0.25; }
+    to { transform: rotate(0deg); opacity: 0.15; }
+}
+
+/* Animated stock ticker */
+.stock-ticker {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, rgba(0,242,169,0.1) 0%, rgba(0,132,255,0.1) 100%);
+    backdrop-filter: blur(10px);
+    border-top: 2px solid rgba(0,242,169,0.3);
+    padding: 12px 0;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.ticker-content {
+    display: flex;
+    animation: scroll 30s linear infinite;
+    white-space: nowrap;
+}
+
+@keyframes scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 30px;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+}
+
+.ticker-up {
+    color: #00f2a9 !important;
+}
+
+.ticker-down {
+    color: #ff6b6b !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- Main content ---
+# Floating finance graphics in corners
+st.markdown('''
+<div class="finance-graphic graphic-1">📈</div>
+<div class="finance-graphic graphic-2">💰</div>
+<div class="finance-graphic graphic-3">📊</div>
+<div class="finance-graphic graphic-4">💹</div>
+<div class="finance-graphic graphic-5">🎯</div>
+<div class="finance-graphic graphic-6">💎</div>
+''', unsafe_allow_html=True)
+
+# Animated stock ticker at bottom
+st.markdown('''
+<div class="stock-ticker">
+    <div class="ticker-content">
+        <span class="ticker-item ticker-up">AAPL ↗ +2.4%</span>
+        <span class="ticker-item ticker-down">TSLA ↘ -1.2%</span>
+        <span class="ticker-item ticker-up">MSFT ↗ +1.8%</span>
+        <span class="ticker-item ticker-up">GOOGL ↗ +3.1%</span>
+        <span class="ticker-item ticker-down">AMZN ↘ -0.5%</span>
+        <span class="ticker-item ticker-up">NVDA ↗ +5.2%</span>
+        <span class="ticker-item ticker-up">META ↗ +2.7%</span>
+        <span class="ticker-item ticker-down">NFLX ↘ -1.8%</span>
+        <span class="ticker-item ticker-up">AAPL ↗ +2.4%</span>
+        <span class="ticker-item ticker-down">TSLA ↘ -1.2%</span>
+        <span class="ticker-item ticker-up">MSFT ↗ +1.8%</span>
+        <span class="ticker-item ticker-up">GOOGL ↗ +3.1%</span>
+        <span class="ticker-item ticker-down">AMZN ↘ -0.5%</span>
+        <span class="ticker-item ticker-up">NVDA ↗ +5.2%</span>
+        <span class="ticker-item ticker-up">META ↗ +2.7%</span>
+        <span class="ticker-item ticker-down">NFLX ↘ -1.8%</span>
+    </div>
+</div>
+''', unsafe_allow_html=True)
+
 st.markdown('<div class="title-bubble">📈 Finance News Sentiment & Stock Movement Predictor</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="instruction-box">💭 Paste your stock news, tweets, or finance text below. We\'ll analyze sentiment, predict stock movement, and visualize the results with beautiful charts!</div>', unsafe_allow_html=True)
