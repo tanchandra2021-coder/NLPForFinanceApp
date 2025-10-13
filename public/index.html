@@ -528,7 +528,7 @@
             this.disabled = true;
 
             try {
-                const response = await axios.post('/api/analyze', { text });
+                const response = await axios.post('/api/index', { text });
                 const data = response.data;
                 
                 displayResults(data);
