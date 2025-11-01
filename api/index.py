@@ -215,6 +215,9 @@ class handler(BaseHTTPRequestHandler):
                                 'slash', 'slashes', 'slashed', 'slashing', 'cancel', 'cancels', 
                                 'canceled', 'canceling', 'cancelled', 'cancelling']
         
+        # Debug: track what keywords were found
+        found_keywords = {'positive': [], 'negative': [], 'reduction_patterns': []}
+        
         # Calculate base scores with word boundary matching and negation detection
         pos_score = 0
         neg_score = 0
@@ -233,6 +236,7 @@ class handler(BaseHTTPRequestHandler):
                 matches = list(re.finditer(pattern, text_lower, re.IGNORECASE))
                 for match in matches:
                     reduction_of_bad_patterns.append((match.start(), match.end(), reduction_word, bad_thing))
+                    found_keywords['reduction_patterns'].append(f"{reduction_word} {bad_thing}")
         
         for word, weight in all_positive.items():
             # Find all matches of this positive word
@@ -247,9 +251,11 @@ class handler(BaseHTTPRequestHandler):
                 
                 # If negated, this positive word becomes negative
                 if re.search(negation_words, context):
-                    neg_score += weight * 0.8  # Negated positive = negative (slightly reduced)
+                    neg_score += weight * 0.8
+                    found_keywords['negative'].append(f"NOT {word} ({weight*0.8})")
                 else:
                     pos_score += weight
+                    found_keywords['positive'].append(f"{word} ({weight})")
         
         # Track which negative words we've already processed as part of reduction patterns
         processed_negative_positions = set()
@@ -261,7 +267,8 @@ class handler(BaseHTTPRequestHandler):
             bad_thing_weight = all_negative.get(bad_thing, 2.5)
             
             # Add strong positive score for reducing bad things
-            pos_score += (reduction_weight + bad_thing_weight) * 1.3
+            total_boost = (reduction_weight + bad_thing_weight) * 1.3
+            pos_score += total_boost
             
             # Mark positions as processed so we don't double-count
             for i in range(pattern_start, pattern_end):
@@ -287,9 +294,11 @@ class handler(BaseHTTPRequestHandler):
                 
                 # If negated by standard negation words
                 if re.search(negation_words, before_context):
-                    pos_score += weight * 0.8  # Negated negative = positive
+                    pos_score += weight * 0.8
+                    found_keywords['positive'].append(f"NOT {word} ({weight*0.8})")
                 else:
                     neg_score += weight
+                    found_keywords['negative'].append(f"{word} ({weight})")
         
         # CONTEXT ANALYSIS - Handle negations and modifiers
         negation_pattern = r'\b(not|no|never|neither|without|lack|lacks|lacking)\b\s+\w+\s+(\w+)'
@@ -462,7 +471,10 @@ class handler(BaseHTTPRequestHandler):
         score_breakdown = {
             'pos_score': round(pos_score, 2),
             'neg_score': round(neg_score, 2),
-            'financial_boost': round(financial_boost, 2)
+            'financial_boost': round(financial_boost, 2),
+            'found_positive': found_keywords['positive'],
+            'found_negative': found_keywords['negative'],
+            'reduction_patterns': found_keywords['reduction_patterns']
         }
         
         return {
