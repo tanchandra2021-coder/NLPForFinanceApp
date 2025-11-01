@@ -218,7 +218,16 @@ class handler(BaseHTTPRequestHandler):
         # Economic negative terms that when reduced/cut become positive
         bad_economic_things = ['tariff', 'tariffs', 'sanction', 'sanctions', 'tax', 'taxes', 'fee', 'fees', 
                                'inflation', 'unemployment', 'debt', 'deficit', 'cost', 'costs', 'price', 'prices',
-                               'rate', 'rates', 'hostile', 'hostility', 'tension', 'tensions', 'risk', 'risks']
+                               'hostile', 'hostility', 'tension', 'tensions', 'risk', 'risks', 'threat', 'threats']
+        
+        # Pre-scan for "reduction of bad things" patterns to handle them specially
+        reduction_of_bad_patterns = []
+        for bad_thing in bad_economic_things:
+            # Pattern: reduction_word + (0-15 words) + bad_thing
+            pattern = r'\b(' + reduction_words.strip(r'\b').strip() + r')\b.{0,80}\b' + re.escape(bad_thing) + r'\b'
+            matches = list(re.finditer(pattern, text_lower))
+            for match in matches:
+                reduction_of_bad_patterns.append((match.start(), match.end(), bad_thing))
         
         for word, weight in all_positive.items():
             # Find all matches of this positive word
@@ -245,23 +254,26 @@ class handler(BaseHTTPRequestHandler):
             for match in matches:
                 match_start = match.start()
                 match_end = match.end()
+                
+                # Check if this word is part of a "reduction of bad thing" pattern
+                is_part_of_reduction = False
+                for pattern_start, pattern_end, bad_thing in reduction_of_bad_patterns:
+                    if pattern_start <= match_start <= pattern_end:
+                        # This negative word is part of "cut tariffs" type pattern
+                        is_part_of_reduction = True
+                        # Add positive score instead
+                        pos_score += weight * 1.2  # Reducing bad things = strongly positive
+                        break
+                
+                if is_part_of_reduction:
+                    continue  # Skip normal negative processing
+                
                 # Check 30 characters before the word for negation
                 context_start = max(0, match_start - 30)
                 before_context = text_lower[context_start:match_start]
                 
-                # Check 40 characters after the word for what's being reduced
-                context_end = min(len(text_lower), match_end + 40)
-                after_context = text_lower[match_end:context_end]
-                
-                # Check if this is a reduction word applied to bad economic things
-                is_reduction = re.search(reduction_words, before_context) or word in ['cut', 'cuts', 'cutting', 'reduce', 'reduces', 'reduced', 'reducing', 'decrease', 'decreases', 'decreased', 'decreasing', 'drop', 'drops', 'dropped', 'dropping', 'lower', 'lowers', 'lowered', 'lowering', 'slash', 'slashes', 'slashed', 'slashing']
-                is_bad_thing = any(bad_word in after_context for bad_word in bad_economic_things)
-                
-                # If we're reducing/cutting a bad thing, that's positive
-                if is_reduction and is_bad_thing:
-                    pos_score += weight * 0.9  # Reducing bad things = positive
                 # If negated by standard negation words
-                elif re.search(negation_words, before_context):
+                if re.search(negation_words, before_context):
                     pos_score += weight * 0.8  # Negated negative = positive
                 else:
                     neg_score += weight
