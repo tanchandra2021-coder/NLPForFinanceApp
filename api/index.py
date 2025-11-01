@@ -169,13 +169,13 @@ class handler(BaseHTTPRequestHandler):
             'worst': 3.5, 'worse': 3, 'worsen': 3, 'worsening': 3, 'worsened': 3
         }
         
-        # NEGATIVE (1.5-2.4 weight)
+        # NEGATIVE keywords - remove "down" as it's too ambiguous (handled in percentage context)
         negative = {
             'drop': 2, 'dropped': 2, 'drops': 2, 'dropping': 2,
             'fall': 2, 'falls': 2, 'fell': 2, 'falling': 2, 'fallen': 2,
             'decline': 2, 'declined': 2, 'declines': 2, 'declining': 2,
             'decrease': 2, 'decreased': 2, 'decreases': 2, 'decreasing': 2,
-            'down': 1.5, 'lower': 1.5, 'lowest': 2, 'downward': 2, 'downturn': 2,
+            'lower': 1.5, 'lowest': 2, 'downward': 2, 'downturn': 2,
             'low': 1.5, 'weaken': 2, 'weakens': 2, 'weakened': 2, 'weakening': 2,
             'weak': 2, 'weaker': 2, 'weakness': 2,
             'concern': 2, 'concerns': 2, 'concerned': 2, 'concerning': 2,
@@ -358,10 +358,50 @@ class handler(BaseHTTPRequestHandler):
         else:
             neg_score += abs(financial_boost)
         
-        # PERCENTAGE ANALYSIS - Enhanced
+        # PERCENTAGE ANALYSIS - Enhanced with "from X to Y" detection
+        # First, detect "from X% to Y%" patterns to determine direction
+        from_to_pattern = r'from\s+(?:about\s+)?(\d+(?:\.\d+)?)\s*%\s+(?:down\s+)?to\s+(\d+(?:\.\d+)?)\s*%'
+        from_to_matches = re.findall(from_to_pattern, text_lower)
+        
+        for from_pct_str, to_pct_str in from_to_matches:
+            from_pct = float(from_pct_str)
+            to_pct = float(to_pct_str)
+            change = to_pct - from_pct
+            
+            # Look at what's being changed
+            pattern_match = re.search(from_to_pattern, text_lower)
+            if pattern_match:
+                context_start = max(0, pattern_match.start() - 60)
+                context_end = min(len(text_lower), pattern_match.end() + 20)
+                context = text_lower[context_start:context_end]
+                
+                # If it's about tariffs, taxes, costs (bad things), reduction is good
+                if any(bad in context for bad in bad_economic_things):
+                    if change < 0:  # Reduction in bad thing
+                        reduction_magnitude = abs(change)
+                        pos_score += min(reduction_magnitude / 2, 6)
+                        found_keywords['positive'].append(f"reduction {from_pct}% to {to_pct}% ({min(reduction_magnitude/2, 6)})")
+                    else:  # Increase in bad thing
+                        increase_magnitude = change
+                        neg_score += min(increase_magnitude / 2, 6)
+                        found_keywords['negative'].append(f"increase {from_pct}% to {to_pct}% ({min(increase_magnitude/2, 6)})")
+                # If it's about revenue, profits (good things), increase is good
+                elif any(good in context for good in ['revenue', 'profit', 'income', 'earnings', 'growth', 'sales']):
+                    if change > 0:  # Increase in good thing
+                        pos_score += min(change / 2, 6)
+                        found_keywords['positive'].append(f"increase {from_pct}% to {to_pct}% ({min(change/2, 6)})")
+                    else:  # Decrease in good thing
+                        neg_score += min(abs(change) / 2, 6)
+                        found_keywords['negative'].append(f"decrease {from_pct}% to {to_pct}% ({min(abs(change)/2, 6)})")
+        
+        # Regular percentage analysis (for cases without "from X to Y")
         percentages = re.findall(r'(\d+(?:\.\d+)?)\s*%', text)
         for pct_str in percentages:
             pct = float(pct_str)
+            
+            # Skip if this was part of a "from X to Y" pattern
+            if any(pct_str in str(from_pct) or pct_str in str(to_pct) for from_pct, to_pct in from_to_matches):
+                continue
             
             # Find context around percentage
             pct_index = text.lower().find(pct_str)
@@ -374,8 +414,11 @@ class handler(BaseHTTPRequestHandler):
             
             if any(w in pct_context for w in ['up', 'gain', 'increase', 'rise', 'surge', 'jump', 'grow', 'growth', 'higher', 'beat', 'exceed']):
                 pos_score += pct_weight
-            elif any(w in pct_context for w in ['down', 'loss', 'decrease', 'fall', 'drop', 'decline', 'lower', 'miss', 'cut', 'reduce']):
+                found_keywords['positive'].append(f"{pct}% increase ({pct_weight})")
+            elif any(w in pct_context for w in ['loss', 'decrease', 'fall', 'drop', 'decline', 'lower', 'miss', 'reduce']):
+                # Don't count "down" here as it might be "down to X%" which is handled above
                 neg_score += pct_weight
+                found_keywords['negative'].append(f"{pct}% decrease ({pct_weight})")
         
         # SPECIAL PATTERNS
         # "but" clause analysis - what comes after "but" is usually more important
