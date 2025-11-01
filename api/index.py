@@ -209,7 +209,11 @@ class handler(BaseHTTPRequestHandler):
         negation_words = r'\b(no|not|without|eliminate|eliminates|eliminated|eliminating|remove|removes|removed|removing|end|ends|ended|ending|avoid|avoids|avoided|avoiding|prevent|prevents|prevented|preventing|reverse|reverses|reversed|reversing|lift|lifts|lifted|lifting|ease|eases|eased|easing|repeal|repeals|repealed|repealing)\b'
         
         # Special cases: these words can negate when applied to negative concepts
-        reduction_words = r'\b(drop|drops|dropped|dropping|cut|cuts|cutting|reduce|reduces|reduced|reducing|decrease|decreases|decreased|decreasing|lower|lowers|lowered|lowering|slash|slashes|slashed|slashing|cancel|cancels|canceled|canceling|cancelled|cancelling)\b'
+        reduction_words_list = ['drop', 'drops', 'dropped', 'dropping', 'cut', 'cuts', 'cutting', 
+                                'reduce', 'reduces', 'reduced', 'reducing', 'decrease', 'decreases', 
+                                'decreased', 'decreasing', 'lower', 'lowers', 'lowered', 'lowering', 
+                                'slash', 'slashes', 'slashed', 'slashing', 'cancel', 'cancels', 
+                                'canceled', 'canceling', 'cancelled', 'cancelling']
         
         # Calculate base scores with word boundary matching and negation detection
         pos_score = 0
@@ -220,14 +224,15 @@ class handler(BaseHTTPRequestHandler):
                                'inflation', 'unemployment', 'debt', 'deficit', 'cost', 'costs', 'price', 'prices',
                                'hostile', 'hostility', 'tension', 'tensions', 'risk', 'risks', 'threat', 'threats']
         
-        # Pre-scan for "reduction of bad things" patterns to handle them specially
+        # Pre-scan for "reduction of bad things" patterns
         reduction_of_bad_patterns = []
-        for bad_thing in bad_economic_things:
-            # Pattern: reduction_word + (0-15 words) + bad_thing
-            pattern = r'\b(' + reduction_words.strip(r'\b').strip() + r')\b.{0,80}\b' + re.escape(bad_thing) + r'\b'
-            matches = list(re.finditer(pattern, text_lower))
-            for match in matches:
-                reduction_of_bad_patterns.append((match.start(), match.end(), bad_thing))
+        for reduction_word in reduction_words_list:
+            for bad_thing in bad_economic_things:
+                # Look for: reduction_word followed by bad_thing within 80 chars
+                pattern = r'\b' + re.escape(reduction_word) + r'\b.{0,80}?\b' + re.escape(bad_thing) + r'\b'
+                matches = list(re.finditer(pattern, text_lower, re.IGNORECASE))
+                for match in matches:
+                    reduction_of_bad_patterns.append((match.start(), match.end(), reduction_word, bad_thing))
         
         for word, weight in all_positive.items():
             # Find all matches of this positive word
@@ -246,6 +251,23 @@ class handler(BaseHTTPRequestHandler):
                 else:
                     pos_score += weight
         
+        # Track which negative words we've already processed as part of reduction patterns
+        processed_negative_positions = set()
+        
+        # First, add positive scores for "reduction of bad things" patterns
+        for pattern_start, pattern_end, reduction_word, bad_thing in reduction_of_bad_patterns:
+            # Find the weight of the reduction word if it's in negative dict
+            reduction_weight = all_negative.get(reduction_word, 1.8)
+            bad_thing_weight = all_negative.get(bad_thing, 2.5)
+            
+            # Add strong positive score for reducing bad things
+            pos_score += (reduction_weight + bad_thing_weight) * 1.3
+            
+            # Mark positions as processed so we don't double-count
+            for i in range(pattern_start, pattern_end):
+                processed_negative_positions.add(i)
+        
+        # Now process remaining negative words that weren't part of reduction patterns
         for word, weight in all_negative.items():
             # Find all matches of this negative word
             pattern = r'\b' + re.escape(word) + r'\b'
@@ -255,18 +277,9 @@ class handler(BaseHTTPRequestHandler):
                 match_start = match.start()
                 match_end = match.end()
                 
-                # Check if this word is part of a "reduction of bad thing" pattern
-                is_part_of_reduction = False
-                for pattern_start, pattern_end, bad_thing in reduction_of_bad_patterns:
-                    if pattern_start <= match_start <= pattern_end:
-                        # This negative word is part of "cut tariffs" type pattern
-                        is_part_of_reduction = True
-                        # Add positive score instead
-                        pos_score += weight * 1.2  # Reducing bad things = strongly positive
-                        break
-                
-                if is_part_of_reduction:
-                    continue  # Skip normal negative processing
+                # Skip if this was already processed as part of a reduction pattern
+                if match_start in processed_negative_positions:
+                    continue
                 
                 # Check 30 characters before the word for negation
                 context_start = max(0, match_start - 30)
