@@ -206,11 +206,19 @@ class handler(BaseHTTPRequestHandler):
         
         # NEGATION HANDLING - Detect when negative words are negated
         # Words that negate/reverse sentiment
-        negation_words = r'\b(no|not|without|eliminate|eliminates|eliminated|eliminating|remove|removes|removed|removing|end|ends|ended|ending|drop|drops|dropped|dropping|cut|cuts|cutting|reduce|reduces|reduced|reducing|decrease|decreases|decreased|decreasing|cancel|cancels|canceled|canceling|cancelled|cancelling|avoid|avoids|avoided|avoiding|prevent|prevents|prevented|preventing|reverse|reverses|reversed|reversing|lift|lifts|lifted|lifting|ease|eases|eased|easing|repeal|repeals|repealed|repealing)\b'
+        negation_words = r'\b(no|not|without|eliminate|eliminates|eliminated|eliminating|remove|removes|removed|removing|end|ends|ended|ending|avoid|avoids|avoided|avoiding|prevent|prevents|prevented|preventing|reverse|reverses|reversed|reversing|lift|lifts|lifted|lifting|ease|eases|eased|easing|repeal|repeals|repealed|repealing)\b'
+        
+        # Special cases: these words can negate when applied to negative concepts
+        reduction_words = r'\b(drop|drops|dropped|dropping|cut|cuts|cutting|reduce|reduces|reduced|reducing|decrease|decreases|decreased|decreasing|lower|lowers|lowered|lowering|slash|slashes|slashed|slashing|cancel|cancels|canceled|canceling|cancelled|cancelling)\b'
         
         # Calculate base scores with word boundary matching and negation detection
         pos_score = 0
         neg_score = 0
+        
+        # Economic negative terms that when reduced/cut become positive
+        bad_economic_things = ['tariff', 'tariffs', 'sanction', 'sanctions', 'tax', 'taxes', 'fee', 'fees', 
+                               'inflation', 'unemployment', 'debt', 'deficit', 'cost', 'costs', 'price', 'prices',
+                               'rate', 'rates', 'hostile', 'hostility', 'tension', 'tensions', 'risk', 'risks']
         
         for word, weight in all_positive.items():
             # Find all matches of this positive word
@@ -236,13 +244,25 @@ class handler(BaseHTTPRequestHandler):
             
             for match in matches:
                 match_start = match.start()
+                match_end = match.end()
                 # Check 30 characters before the word for negation
                 context_start = max(0, match_start - 30)
-                context = text_lower[context_start:match_start]
+                before_context = text_lower[context_start:match_start]
                 
-                # If negated, this negative word becomes positive
-                if re.search(negation_words, context):
-                    pos_score += weight * 0.8  # Negated negative = positive (slightly reduced)
+                # Check 40 characters after the word for what's being reduced
+                context_end = min(len(text_lower), match_end + 40)
+                after_context = text_lower[match_end:context_end]
+                
+                # Check if this is a reduction word applied to bad economic things
+                is_reduction = re.search(reduction_words, before_context) or word in ['cut', 'cuts', 'cutting', 'reduce', 'reduces', 'reduced', 'reducing', 'decrease', 'decreases', 'decreased', 'decreasing', 'drop', 'drops', 'dropped', 'dropping', 'lower', 'lowers', 'lowered', 'lowering', 'slash', 'slashes', 'slashed', 'slashing']
+                is_bad_thing = any(bad_word in after_context for bad_word in bad_economic_things)
+                
+                # If we're reducing/cutting a bad thing, that's positive
+                if is_reduction and is_bad_thing:
+                    pos_score += weight * 0.9  # Reducing bad things = positive
+                # If negated by standard negation words
+                elif re.search(negation_words, before_context):
+                    pos_score += weight * 0.8  # Negated negative = positive
                 else:
                     neg_score += weight
         
@@ -383,14 +403,33 @@ class handler(BaseHTTPRequestHandler):
         spread = abs(pos_prob - neg_prob)
         certainty = max(pos_prob, neg_prob, neu_prob) - sorted([pos_prob, neg_prob, neu_prob])[1]
         
-        # Enhanced movement calculation
+        # Enhanced movement calculation with dampening for routine negative news
         base_movement = confidence * spread * 10
         certainty_boost = certainty * 5
         
+        # Dampening factors for routine negative news
+        dampening = 1.0
+        
+        if sentiment == "Negative":
+            # Check if this is "routine" negative news vs crisis
+            routine_negative_indicators = ['lawsuit', 'allege', 'investigation', 'dispute', 'concern', 'worry', 'challenge']
+            crisis_indicators = ['crash', 'collapse', 'bankruptcy', 'fraud', 'criminal', 'plunge', 'crisis', 'catastrophe']
+            
+            has_routine = any(word in text_lower for word in routine_negative_indicators)
+            has_crisis = any(word in text_lower for word in crisis_indicators)
+            
+            # If it's routine negative news without crisis words, dampen the movement
+            if has_routine and not has_crisis:
+                # Lawsuits and allegations are common, don't overreact
+                dampening = 0.25  # Reduce movement to 25% for routine legal issues
+            elif neg_score < 10:
+                # Mild negative sentiment
+                dampening = 0.5
+        
         if sentiment == "Positive":
-            movement = min(15, round(base_movement + certainty_boost, 2))
+            movement = min(15, round((base_movement + certainty_boost) * dampening, 2))
         elif sentiment == "Negative":
-            movement = -min(15, round(base_movement + certainty_boost, 2))
+            movement = -min(15, round((base_movement + certainty_boost) * dampening, 2))
         else:
             movement = round((pos_prob - neg_prob) * 3, 2)
         
