@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import re
+import yfinance as yf
 
 class handler(BaseHTTPRequestHandler):
     
@@ -13,13 +14,64 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def do_GET(self):
-        """Handle GET requests for testing"""
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        response = {'status': 'ok', 'message': 'Sentiment Analysis API is running'}
-        self.wfile.write(json.dumps(response).encode())
+        """Handle GET requests"""
+        # Check if requesting stocks endpoint
+        if self.path == '/api/stocks' or self.path == '/stocks':
+            self._handle_stocks_request()
+        else:
+            # Default response for testing
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {'status': 'ok', 'message': 'Sentiment Analysis API is running'}
+            self.wfile.write(json.dumps(response).encode())
+    
+    def _handle_stocks_request(self):
+        """Get real-time stock data using yfinance"""
+        try:
+            tickers = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX',
+                      'AMD', 'INTC', 'PYPL', 'COIN', 'SQ', 'SHOP', 'UBER', 'ABNB']
+            
+            stocks_data = []
+            
+            for ticker in tickers:
+                try:
+                    stock = yf.Ticker(ticker)
+                    info = stock.info
+                    
+                    # Get current price and change
+                    current_price = info.get('currentPrice') or info.get('regularMarketPrice', 0)
+                    prev_close = info.get('previousClose', current_price)
+                    
+                    # Calculate percent change
+                    if prev_close and prev_close > 0:
+                        change_percent = ((current_price - prev_close) / prev_close) * 100
+                    else:
+                        change_percent = 0
+                    
+                    stocks_data.append({
+                        'symbol': ticker,
+                        'price': round(current_price, 2),
+                        'change': round(change_percent, 2)
+                    })
+                except Exception as e:
+                    print(f"Error fetching {ticker}: {e}")
+                    # Add placeholder data if fetch fails
+                    stocks_data.append({
+                        'symbol': ticker,
+                        'price': 0,
+                        'change': 0
+                    })
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'stocks': stocks_data}).encode())
+            
+        except Exception as e:
+            self._send_error(f'Error fetching stocks: {str(e)}')
     
     def do_POST(self):
         """Handle sentiment analysis requests"""
