@@ -1300,90 +1300,94 @@
         let lastFetchTime = 0;
         const CACHE_DURATION = 60000; // 1 minute
 
-        async function updateStockTicker() {
-            const tickers = [
-                'AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX',
-                'AMD', 'INTC', 'PYPL', 'COIN', 'SQ', 'SHOP', 'UBER', 'ABNB'
-            ];
+      async function updateStockTicker() {
+    const tickers = [
+        'AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX',
+        'AMD', 'INTC', 'PYPL', 'COIN', 'SQ', 'SHOP', 'UBER', 'ABNB'
+    ];
+    
+    const now = Date.now();
+    
+    // Try to fetch real data if cache is expired
+    if (now - lastFetchTime > CACHE_DURATION) {
+        try {
+            const response = await fetch('/api/stocks', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
-            const now = Date.now();
-            
-            // Try to fetch real data if cache is expired
-            if (now - lastFetchTime > CACHE_DURATION) {
-                try {
-                    const response = await fetch('/api/stocks', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.stocks && Array.isArray(data.stocks) && data.stocks.length > 0) {
+                    // Clear old cache and use new data
+                    stockCache = {};
+                    data.stocks.forEach(stock => {
+                        if (stock.price > 0) {
+                            stockCache[stock.symbol] = {
+                                symbol: stock.symbol,
+                                price: stock.price,
+                                change: stock.change
+                            };
                         }
                     });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        if (data.stocks && Array.isArray(data.stocks)) {
-                            data.stocks.forEach(stock => {
-                                if (stock.price > 0) {
-                                    stockCache[stock.symbol] = {
-                                        symbol: stock.symbol,
-                                        price: stock.price,
-                                        change: stock.change
-                                    };
-                                }
-                            });
-                            lastFetchTime = now;
-                            console.log('Successfully fetched stock data');
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching stock data:', error);
+                    lastFetchTime = now;
+                    console.log('Successfully fetched stock data');
                 }
             }
-            
-            // If cache is empty, initialize with fallback data
-            if (Object.keys(stockCache).length === 0) {
-                console.log('Using fallback stock data');
-                tickers.forEach(ticker => {
-                    const basePrice = fallbackPrices[ticker];
-                    const simulatedChange = (Math.random() - 0.45) * 3;
-                    stockCache[ticker] = {
-                        symbol: ticker,
-                        price: basePrice * (1 + simulatedChange / 100),
-                        change: simulatedChange
-                    };
-                });
-            }
-            
-            // Generate ticker HTML
-            const tickerHTML = tickers.map(ticker => {
-                const stock = stockCache[ticker] || {
-                    symbol: ticker,
-                    price: fallbackPrices[ticker],
-                    change: (Math.random() - 0.45) * 3
-                };
-                
-                const price = stock.price.toFixed(2);
-                const change = stock.change;
-                const arrow = change >= 0 ? '↗' : '↘';
-                const cssClass = change >= 0 ? 'ticker-up' : 'ticker-down';
-                const sign = change >= 0 ? '+' : '';
-                
-                return `
-                    <span class="ticker-item ${cssClass}">
-                        <span class="ticker-symbol">${ticker}</span>
-                        $${price}
-                        <span class="ticker-arrow">${arrow}</span>
-                        ${sign}${change.toFixed(2)}%
-                    </span>
-                `;
-            }).join('');
-            
-            // Update the ticker - duplicate for seamless scrolling
-            const tickerElement = document.getElementById('ticker');
-            if (tickerElement) {
-                tickerElement.innerHTML = tickerHTML + tickerHTML;
-            }
+        } catch (error) {
+            console.error('Error fetching stock data:', error);
         }
+    }
+    
+    // If cache is STILL empty after trying to fetch, initialize with fallback ONCE
+    if (Object.keys(stockCache).length === 0) {
+        console.log('Initializing fallback stock data');
+        tickers.forEach(ticker => {
+            const basePrice = fallbackPrices[ticker];
+            const simulatedChange = (Math.random() - 0.45) * 3;
+            stockCache[ticker] = {
+                symbol: ticker,
+                price: basePrice * (1 + simulatedChange / 100),
+                change: simulatedChange
+            };
+        });
+        // Mark cache as initialized to prevent regeneration
+        lastFetchTime = now;
+    }
+    
+    // Generate ticker HTML from cached data
+    const tickerHTML = tickers.map(ticker => {
+        const stock = stockCache[ticker] || {
+            symbol: ticker,
+            price: fallbackPrices[ticker],
+            change: 0
+        };
+        
+        const price = stock.price.toFixed(2);
+        const change = stock.change;
+        const arrow = change >= 0 ? '↗' : '↘';
+        const cssClass = change >= 0 ? 'ticker-up' : 'ticker-down';
+        const sign = change >= 0 ? '+' : '';
+        
+        return `
+            <span class="ticker-item ${cssClass}">
+                <span class="ticker-symbol">${ticker}</span>
+                $${price}
+                <span class="ticker-arrow">${arrow}</span>
+                ${sign}${change.toFixed(2)}%
+            </span>
+        `;
+    }).join('');
+    
+    // Update the ticker - duplicate for seamless scrolling
+    const tickerElement = document.getElementById('ticker');
+    if (tickerElement) {
+        tickerElement.innerHTML = tickerHTML + tickerHTML;
+    }
+}
 
         createBackgroundElements();
         updateStockTicker();
