@@ -12,7 +12,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def do_GET(self):
-        API_KEY = 'YOUR_FINNHUB_API_KEY_HERE'  # Replace this!
+        API_KEY = 'd5u3fihr01qtjet1sj1gd5u3fihr01qtjet1sj20'  # Replace this!
         
         tickers = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX',
                   'AMD', 'INTC', 'PYPL', 'COIN', 'SQ', 'SHOP', 'UBER', 'ABNB']
